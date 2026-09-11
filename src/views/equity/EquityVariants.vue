@@ -28,7 +28,24 @@ const visibleNav = computed(() => mainNav.slice(0, mainNav.length - overflowNav.
 const workspace = ref(null), accountId = ref('TZS_T0'), showAll = ref(false), query = ref(''), market = ref('ALL'), positionType = ref('ALL')
 const assetsVisible = ref(true), assetsCollapsed = ref(false)
 const tab = ref('positions'), selectedCode = ref('000001'), table = ref(null), quote = ref(null)
-const demoOrders = ref([])
+const orderStatusMachine = ['未报', '待报', '已报', '待撤', '待撤［部成］', '部撤', '撤单', '部成', '全成', '被拒绝', '已报待改', '待改［部成］', '改单待审核', '撤单待审核', '新单待审核']
+const orderStatusOptions = [{ label: '状态', value: 'ALL' }, ...orderStatusMachine.map(status => ({ label: status, value: status }))]
+const demoOrders = ref(orderStatusMachine.map((status, index) => {
+  const instrument = variantRows[index % variantRows.length]
+  const quantity = (index + 1) * 100
+  const partial = status.includes('部成') || status === '部撤'
+  const filledQuantity = status === '全成' ? quantity : partial ? Math.floor(quantity / 2 / 100) * 100 : 0
+  const price = index % 3 === 1 ? null : instrument.price
+  return {
+    id: `seed-${index + 1}`, orderNo: `WT20260911${String(index + 1).padStart(3, '0')}`,
+    account: 'TZS_T0', code: instrument.code, name: instrument.name, type: price === null ? 'market' : 'limit',
+    side: index % 2 ? 'sell' : 'buy', openClose: index % 3 ? '平' : '开', status,
+    runStatus: ['部撤', '撤单', '全成', '被拒绝'].includes(status) ? '已结束' : '运行中',
+    attribute: `${price === null ? '市价' : '限价'}·数量`, quantity, price,
+    orderValueNumber: quantity, orderValue: `${number(quantity)} 股`, filledQuantity,
+    filledPrice: filledQuantity ? instrument.price : null, estimate: (price || instrument.price) * quantity,
+  }
+}))
 const orderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: 'ALL' })
 const sortState = ref({ prop: null, direction: null })
 const orderSortState = ref({ prop: null, direction: null })
@@ -79,7 +96,7 @@ function exportPositions() {
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' })); link.download = '持仓列表.csv'; link.click(); URL.revokeObjectURL(link.href)
 }
 function exportOrders() {
-  const header = ['运行状态', '委托状态', '开平', '买卖', '标的代码', '标的名称', '委托属性', '委托价格', '委托数量/金额', '成交数量', '成交均价']
+  const header = ['运行状态', '委托状态', '开平', '买卖', '标的代码', '标的名称', '委托类型', '委托价格', '委托数量/金额', '成交数量', '成交均价']
   const records = orders.value.map(row => [row.runStatus, row.status, row.openClose, row.side === 'buy' ? '买' : '卖', row.code, row.name, row.attribute, row.price === null ? '市价' : money(row.price), row.orderValue, row.filledQuantity ? number(row.filledQuantity) : '--', row.filledPrice === null ? '--' : money(row.filledPrice)])
   const csv = [header, ...records].map(record => record.map(value => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n')
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' })); link.download = '委托记录.csv'; link.click(); URL.revokeObjectURL(link.href)
@@ -138,11 +155,10 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         </template>
         <template v-else-if="tab==='orders'">
           <div class="order-filters">
-            <el-input v-model="orderFilters.symbol" placeholder="标的物" aria-label="按标的物筛选" clearable />
-            <el-input v-model="orderFilters.orderNo" :prefix-icon="Search" placeholder="委托编号" aria-label="按委托编号筛选" clearable />
+            <el-input v-model="orderFilters.symbol" :prefix-icon="Search" placeholder="标的名称 / 代码" aria-label="搜索委托标的" clearable />
             <el-select v-model="orderFilters.side" aria-label="买卖方向筛选" popper-class="variant-popper"><el-option label="买卖方向" value="ALL"/><el-option label="买入" value="buy"/><el-option label="卖出" value="sell"/></el-select>
             <el-select v-model="orderFilters.openClose" aria-label="开平类型筛选" popper-class="variant-popper"><el-option label="开平类型" value="ALL"/><el-option label="开" value="开"/><el-option label="平" value="平"/></el-select>
-            <el-select v-model="orderFilters.status" aria-label="委托状态筛选" popper-class="variant-popper"><el-option label="状态" value="ALL"/><el-option label="待报" value="待报"/><el-option label="已撤销" value="已撤销"/></el-select>
+            <el-select v-model="orderFilters.status" aria-label="委托状态筛选" popper-class="variant-popper"><el-option v-for="option in orderStatusOptions" :key="option.value" :label="option.label" :value="option.value" /></el-select>
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
           <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
@@ -152,7 +168,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-table-column label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
             <el-table-column prop="code" label="标的代码" width="92"/>
             <el-table-column prop="name" label="标的名称" width="110"/>
-            <el-table-column prop="attribute" label="委托属性" width="100"/>
+            <el-table-column prop="attribute" label="委托类型" width="100"/>
             <el-table-column prop="price" width="98" align="right" header-align="right"><template #header><SortHeader label="委托价格" numeric :direction="orderSortState.prop === 'price' ? orderSortState.direction : null" @sort="toggleOrderSort('price')" /></template><template #default="{row}">{{ row.price === null ? '市价' : money(row.price) }}</template></el-table-column>
             <el-table-column prop="orderValueNumber" width="160" align="right" header-align="right"><template #header><SortHeader label="委托数量/金额" numeric :direction="orderSortState.prop === 'orderValueNumber' ? orderSortState.direction : null" @sort="toggleOrderSort('orderValueNumber')" /></template><template #default="{row}">{{ row.orderValue }}</template></el-table-column>
             <el-table-column prop="filledQuantity" width="92" align="right" header-align="right"><template #header><SortHeader label="成交数量" numeric :direction="orderSortState.prop === 'filledQuantity' ? orderSortState.direction : null" @sort="toggleOrderSort('filledQuantity')" /></template><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>

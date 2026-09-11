@@ -330,13 +330,15 @@
 
 /* 委托记录：筛选项保持紧凑，导出始终靠右。 */
 .variants-app .order-filters{display:flex;align-items:center;flex-shrink:0;gap:8px;min-height:48px;padding:8px 12px;border-bottom:1px solid #303338}
-.variants-app .order-filters>.el-input{width:142px}.variants-app .order-filters>.el-select{width:104px}
+.variants-app .order-filters>.el-input{width:166px;min-width:90px}.variants-app .order-filters>.el-select{width:103px;min-width:90px}.variants-app .order-filters>.el-select:nth-of-type(3){width:122px}
+.variants-app .order-filters .el-input__wrapper,.variants-app .order-filters .el-select__wrapper{min-height:28px}
 .variants-app .order-filters>span{margin-left:auto;color:#818995;font-size:10px;white-space:nowrap}
 .variants-app .export-orders{display:grid;place-items:center;width:28px;height:28px;margin-left:auto;padding:0;border:1px solid #3b3f46;border-radius:3px;background:#25282d;color:#aeb6c1;cursor:pointer}
 .variants-app .export-orders:hover{border-color:#bb984a;background:#302d25;color:#e1c36f}
 .variants-app .export-orders .el-icon{font-size:14px}
 .variants-app .orders-table{flex:1;min-height:0}
 .variants-app .orders-table .el-table__fixed-right{z-index:4;box-shadow:-5px 0 10px #0004}.variants-app .orders-table .el-table__fixed-right-patch{z-index:4;background:#1e2023}.variants-app .orders-table .el-table__fixed-right .el-table__header-wrapper{position:relative;z-index:5;background:#25282d}.variants-app .orders-table .el-table__fixed-right .el-table__cell{background:#1e2023}.variants-app .orders-table .el-table__fixed-right .el-table__header .el-table__cell{background:#25282d}
+.variants-app .positions-tabs button span{color:#bb984a}
 
 /* 余额不足时让账户余额成为明确的对比焦点，操作收束到弹窗底部中间。 */
 .insufficient-funds .balance-compare>div:nth-child(2) b{color:#f05f66}.insufficient-funds .el-dialog__footer{justify-content:center}
