@@ -130,8 +130,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         </template>
         <template v-else-if="tab==='orders'">
           <div class="order-filters">
-            <el-input v-model="orderFilters.orderNo" :prefix-icon="Search" placeholder="委托编号" aria-label="按委托编号筛选" clearable />
             <el-input v-model="orderFilters.symbol" placeholder="标的物" aria-label="按标的物筛选" clearable />
+            <el-input v-model="orderFilters.orderNo" :prefix-icon="Search" placeholder="委托编号" aria-label="按委托编号筛选" clearable />
             <el-select v-model="orderFilters.side" aria-label="买卖方向筛选" popper-class="variant-popper"><el-option label="买卖方向" value="ALL"/><el-option label="买入" value="buy"/><el-option label="卖出" value="sell"/></el-select>
             <el-select v-model="orderFilters.openClose" aria-label="开平类型筛选" popper-class="variant-popper"><el-option label="开平类型" value="ALL"/><el-option label="开" value="开"/><el-option label="平" value="平"/></el-select>
             <el-select v-model="orderFilters.status" aria-label="委托状态筛选" popper-class="variant-popper"><el-option label="状态" value="ALL"/><el-option label="待报" value="待报"/><el-option label="已撤销" value="已撤销"/></el-select>
