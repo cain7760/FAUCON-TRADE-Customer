@@ -302,43 +302,47 @@
 
 /* Bottom dock: keep the order workflow intact and make assets a compact side summary. */
 @media (min-width:1251px){
-  .variants-app .dock-bottom{grid-template-rows:minmax(220px,1fr) 392px!important}
+  .variants-app .dock-bottom{grid-template-rows:minmax(220px,1fr) 330px!important}
   .variants-app .dock-bottom .trade-dock{
-    grid-template-columns:minmax(360px,.32fr) minmax(760px,1fr) 238px!important;
-    grid-template-rows:minmax(0,1fr)!important;
-    grid-template-areas:'book ticket assets'!important;
+    grid-template-columns:minmax(360px,.32fr) minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr) 58px!important;
+    grid-template-areas:'book ticket' 'book assets'!important;
     gap:6px!important;
   }
   .variants-app .dock-bottom .trade-dock .book-pane{grid-area:book!important}
   .variants-app .dock-bottom .trade-dock .ticket-pane{grid-area:ticket!important}
   .variants-app .dock-bottom .trade-dock .ticket-assets{
     grid-area:assets!important;
-    align-self:end;
-    height:104px!important;
+    align-self:stretch;
+    height:58px!important;
     margin:0!important;
     border:1px solid #303338!important;
     border-radius:4px!important;
     background:#1e2023!important;
   }
-  .variants-app .dock-bottom .ticket-assets{grid-template-rows:30px minmax(0,1fr)!important}
-  .variants-app .dock-bottom .ticket-assets>.asset-summary-heading{height:30px!important;padding:0 10px!important}
+  .variants-app .dock-bottom .ticket-assets{grid-template-columns:132px minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:1fr!important}
+  .variants-app .dock-bottom .ticket-assets>.asset-summary-heading{height:auto!important;padding:0 10px!important;border-bottom:0!important;border-right:1px solid #303338!important}
   .variants-app .dock-bottom .ticket-assets .asset-summary-heading>span{font-size:11px!important}
-  .variants-app .dock-bottom .ticket-assets .asset-summary-grid{gap:0!important;padding:0 10px!important}
-  .variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric{padding:0!important}
+  .variants-app .dock-bottom .ticket-assets .asset-summary-grid{display:contents!important}
+  .variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric{grid-template-columns:minmax(0,1fr) max-content 30px!important;grid-template-rows:1fr!important;padding:0 12px!important}
+  .variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric+.asset-metric{border-top:0!important;border-left:1px solid #303338!important}
+  .variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric>span{grid-column:auto!important;font-size:10px!important}
   .variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric>b,.variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric .asset-number{font-size:13px!important}
   .variants-app .dock-bottom .ticket-assets .asset-summary-grid .asset-metric>small{font-size:10px!important}
   .variants-app .dock-bottom .ticket-pane .order-form{
-    grid-template-columns:210px minmax(260px,1fr) minmax(260px,1fr) 300px!important;
-    grid-template-rows:auto auto minmax(0,1fr)!important;
-    gap:12px 16px!important;
-    padding:14px 16px!important;
+    grid-template-columns:172px 174px minmax(230px,1fr) 176px minmax(220px,.8fr) 254px!important;
+    grid-template-rows:64px minmax(0,1fr)!important;
+    gap:10px 12px!important;
+    padding:10px 14px!important;
   }
   .variants-app .dock-bottom .ticket-pane .order-account-block{grid-column:1;grid-row:1}
-  .variants-app .dock-bottom .ticket-pane .order-type-row{grid-column:2/4;grid-row:1;margin:0!important}
-  .variants-app .dock-bottom .ticket-pane .order-symbol-block{grid-column:1/4;grid-row:2;padding:0 0 10px!important}
-  .variants-app .dock-bottom .ticket-pane .price-block{grid-column:1/3;grid-row:3;border-right:1px solid #303338;padding-right:16px!important}
-  .variants-app .dock-bottom .ticket-pane .quantity-block{grid-column:3;grid-row:3;border-right:1px solid #303338;padding-right:16px!important}
-  .variants-app .dock-bottom .ticket-pane .submit-block{grid-column:4;grid-row:1/4;align-self:stretch;border-left:1px solid #303338;padding-left:16px}
-  .variants-app .dock-bottom .ticket-pane .submit-block .order-totals{margin-top:12px!important}
+  .variants-app .dock-bottom .ticket-pane .order-type-row{grid-column:2;grid-row:1;margin:0!important}
+  .variants-app .dock-bottom .ticket-pane .order-symbol-block{grid-column:3/6;grid-row:1;padding:0!important;border:0!important}
+  .variants-app .dock-bottom .ticket-pane .price-block{grid-column:1/4;grid-row:2;border-right:1px solid #303338;padding-right:12px!important}
+  .variants-app .dock-bottom .ticket-pane .quantity-block{grid-column:4/6;grid-row:2;border-right:1px solid #303338;padding-right:12px!important}
+  .variants-app .dock-bottom .ticket-pane .submit-block{grid-column:6;grid-row:1/3;align-self:stretch;border-left:1px solid #303338;padding-left:12px}
+  .variants-app .dock-bottom .ticket-pane .submit-block .order-totals{margin-top:10px!important;gap:8px 12px!important}
+  .variants-app .dock-bottom .ticket-pane .quantity-block .el-slider{margin-top:6px!important;margin-bottom:18px!important}
+  .variants-app .dock-bottom .ticket-pane .capacity-pair{margin-top:-2px!important}
   .variants-app .dock-bottom .ticket-pane .field-caption{margin-bottom:6px!important}
 }
