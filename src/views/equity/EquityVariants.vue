@@ -104,6 +104,15 @@ function exportOrders() {
 function chooseDock(value) { dock.value = value; if(value === 'floating' && workspace.value) floating.value = {x:Math.max(0, workspace.value.clientWidth-350),y:12,width:340,height:Math.min(650,workspace.value.clientHeight-12)} }
 function toggleSort(prop) { const current = sortState.value; sortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
 function toggleOrderSort(prop) { const current = orderSortState.value; orderSortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
+function orderStatusVisual(status) {
+  if (status === '未报') return { tone: 'draft', icon: '○' }
+  if (['待报', '待撤', '待撤［部成］'].includes(status)) return { tone: 'pending', icon: '◷' }
+  if (status === '已报') return { tone: 'reported', icon: '●' }
+  if (['部撤', '部成', '待改［部成］'].includes(status)) return { tone: 'partial', icon: '◐' }
+  if (status === '全成') return { tone: 'success', icon: '✓' }
+  if (status === '被拒绝') return { tone: 'rejected', icon: '×' }
+  return { tone: 'review', icon: '✎' }
+}
 watch(accountId, () => { quote.value = null })
 watch(collapsed, async () => { await nextTick(); table.value?.doLayout?.() })
 const accountBalance = computed(() => account.value.id === 'TZS_T0' ? 1000000 : 700000)
@@ -163,7 +172,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
           </div>
           <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
             <el-table-column prop="runStatus" label="运行状态" width="76"/>
-            <el-table-column prop="status" label="委托状态" width="76"/>
+            <el-table-column prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><i>{{ orderStatusVisual(row.status).icon }}</i>{{ row.status }}</span></template></el-table-column>
             <el-table-column prop="openClose" label="开平" width="54" align="center"/>
             <el-table-column label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
             <el-table-column prop="code" label="标的代码" width="92"/>

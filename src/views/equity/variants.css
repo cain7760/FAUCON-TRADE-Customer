@@ -339,6 +339,7 @@
 .variants-app .orders-table{flex:1;min-height:0}
 .variants-app .orders-table .el-table__fixed-right{z-index:4;box-shadow:-5px 0 10px #0004}.variants-app .orders-table .el-table__fixed-right-patch{z-index:4;background:#1e2023}.variants-app .orders-table .el-table__fixed-right .el-table__header-wrapper{position:relative;z-index:5;background:#25282d}.variants-app .orders-table .el-table__fixed-right .el-table__cell{background:#1e2023}.variants-app .orders-table .el-table__fixed-right .el-table__header .el-table__cell{background:#25282d}
 .variants-app .positions-tabs button span{color:#bb984a}
+.variants-app .order-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;line-height:17px;white-space:nowrap}.variants-app .order-status i{display:grid;place-items:center;width:11px;height:11px;font-style:normal;font-size:11px;line-height:11px}.variants-app .order-status.is-draft{color:#9199a5}.variants-app .order-status.is-pending{color:#d6b877}.variants-app .order-status.is-reported{color:#70b7d5}.variants-app .order-status.is-partial{color:#d89b61}.variants-app .order-status.is-success{color:#53b395}.variants-app .order-status.is-rejected{color:#e2767c}.variants-app .order-status.is-review{color:#a38ed4}
 
 /* 余额不足时让账户余额成为明确的对比焦点，操作收束到弹窗底部中间。 */
 .insufficient-funds .balance-compare>div:nth-child(2) b{color:#f05f66}.insufficient-funds .el-dialog__footer{justify-content:center}
