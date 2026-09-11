@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
-import { CircleClose, InfoFilled } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowUp, CircleClose, InfoFilled } from '@element-plus/icons-vue'
 import { money, number } from '../variantData'
 const props = defineProps({ instruments: Array, accounts: Array, symbol: Object, account: Object, quote: Object })
 const emit = defineEmits(['select', 'account-select', 'order'])
@@ -31,6 +31,7 @@ watch([orderType, unit, quantityMode], reset)
 watch(() => props.quote, value => { if (value) { orderType.value = 'limit'; price.value = value.price } })
 watch(price, () => { fraction.value = 0; confirming.value = false })
 function size(value) { const q = Math.floor(maxBuy.value * value / 100 / 100) * 100; if (quantityMode.value === 'amount') amount.value = Number((q * estimatedPrice.value).toFixed(2)); else quantity.value = unit.value === 'wan' ? Math.floor(q / 10000) : q }
+function stepPrice(direction) { const current = Number(price.value) || 0; price.value = Number((Math.max(0, current + direction * .01)).toFixed(2)) }
 function preview(side) {
   if (!(side === 'buy' ? canBuy.value : canSell.value)) return
   snapshot.value = { id: Date.now(), account: props.account.id, code: props.symbol.code, name: props.symbol.name, type: orderType.value, side, quantity: shares.value, price: orderType.value === 'limit' ? price.value : null, estimate: estimatedPrice.value * shares.value, status: '模拟待报' }
@@ -54,7 +55,7 @@ function submit() { emit('order', { ...snapshot.value }); reset() }
       </el-select><button v-if="displaySymbolCode" type="button" class="symbol-clear-button" aria-label="清空下单标的" title="清空下单标的" @click.stop="clearInstrument"><el-icon><CircleClose /></el-icon></button></div>
     </section>
     <section class="price-block">
-      <template v-if="orderType === 'limit'"><div class="field-caption"><label for="variant-price">委托价格</label></div><el-input-number id="variant-price" v-model="price" placeholder="请输入" :step=".01" :precision="2" controls-position="right" :class="{ 'is-error': priceInvalid }" /><span v-if="priceInvalid" class="price-error">委托价格不可为0，请重试</span></template>
+      <template v-if="orderType === 'limit'"><div class="field-caption"><label for="variant-price">委托价格</label></div><div class="price-input-row" :class="{ 'is-error': priceInvalid }"><el-input-number id="variant-price" v-model="price" placeholder="请输入" :step=".01" :precision="2" :controls="false" /><span class="price-stepper"><button type="button" aria-label="增加委托价格" @click="stepPrice(1)"><el-icon><ArrowUp /></el-icon></button><button type="button" aria-label="减少委托价格" @click="stepPrice(-1)"><el-icon><ArrowDown /></el-icon></button></span></div><span v-if="priceInvalid" class="price-error">委托价格不可为0，请重试</span></template>
       <template v-else><div class="field-caption"><span>委托价格</span></div><div class="market-price-note"><b>以市场价格成交</b></div></template>
     </section>
     <section class="quantity-block">

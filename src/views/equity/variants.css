@@ -109,15 +109,9 @@
 .variants-app .order-type-row .order-type{display:flex;width:100%}
 .variants-app .order-type-row .el-radio-button{flex:1}
 .variants-app .order-type-row .el-radio-button__inner{width:100%}
-.variants-app .order-form .el-input-number .el-input-number__increase,.variants-app .order-form .el-input-number .el-input-number__decrease{right:0;width:38px;height:calc((100% - 1px)/2);line-height:18px;margin:0}
-.variants-app .order-form .el-input-number .el-input-number__increase{top:0;bottom:auto}
-.variants-app .order-form .el-input-number .el-input-number__decrease{top:auto;bottom:0}
 .variants-app .book-ticks .trade-tick{font-size:11px}
 .variants-app .quantity-input-row>.el-select .el-select__wrapper{box-shadow:inset -1px 0 #3b3f46,inset 0 1px #3b3f46,inset 0 -1px #3b3f46!important}
 .variants-app .quantity-input-row .is-wan-unit .el-select__wrapper{background:#25282d!important;box-shadow:inset -1px 0 #3b3f46,inset 0 1px #3b3f46,inset 0 -1px #3b3f46!important}
-.variants-app .order-form .el-input-number .el-input-number__increase,.variants-app .order-form .el-input-number .el-input-number__decrease{background:#2c3036;border-left:1px solid #3b3f46!important;border-right:1px solid #3b3f46!important}
-.variants-app .order-form .el-input-number .el-input-number__increase{border-top:1px solid #3b3f46!important;border-bottom:1px solid #3b3f46!important}
-.variants-app .order-form .el-input-number .el-input-number__decrease{border-bottom:1px solid #3b3f46!important}
 .variants-app .quantity-mode{display:inline-flex;align-items:center;gap:0}
 .variants-app .quantity-mode .el-radio-button__inner{height:20px;padding:0 7px;border:1px solid #393e46!important;border-radius:0;background:#25282d;color:#929aa6;font-size:10px;line-height:18px;box-shadow:none!important}
 .variants-app .quantity-mode .el-radio-button:first-child .el-radio-button__inner{border-radius:3px 0 0 3px}
@@ -299,6 +293,19 @@
 .variants-app .order-account-block .el-select__selected-item{color:#e8eaed}
 .variants-app .drag-grip i{background:#e8eaed}
 .variants-app .profit-heading .total-help .el-icon{color:currentColor}
+
+/* Explicit price controls: visual position and price mutation share one source of truth. */
+.variants-app .price-input-row{position:relative;display:flex;width:100%}
+.variants-app .price-input-row>.el-input-number{width:100%}
+.variants-app .price-input-row>.el-input-number .el-input__wrapper{padding-right:42px!important}
+.variants-app .price-stepper{position:absolute;z-index:4;top:1px;right:1px;bottom:1px;display:grid;width:38px;grid-template-rows:1fr 1fr;border-left:1px solid #3b3f46;border-radius:0 3px 3px 0;overflow:hidden;background:#2c3036}
+.variants-app .price-stepper button{display:grid;place-items:center;min-height:0;padding:0;border:0;background:transparent;color:#aeb6c1;cursor:pointer}
+.variants-app .price-stepper button+button{border-top:1px solid #3b3f46}
+.variants-app .price-stepper button:hover{background:#353a41;color:#e8eaed}
+.variants-app .price-stepper .el-icon{font-size:12px}
+.variants-app .price-input-row:hover:after,.variants-app .price-input-row:focus-within:after{content:'';position:absolute;z-index:5;inset:0;border:1px solid #e8eaed;border-radius:3px;pointer-events:none}
+.variants-app .price-input-row:focus-within:after{border-color:#bb984a}
+.variants-app .price-input-row.is-error:after{border-color:#d84e57!important}
 
 /* Bottom dock: keep the order workflow intact and make assets a compact side summary. */
 @media (min-width:1251px){
