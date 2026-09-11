@@ -24,7 +24,7 @@ function save() { emit('update:modelValue', [...draft.value]); visible.value = f
       <header><b>自定义列设置</b><button type="button" @click="restoreDefaults">恢复默认</button></header>
       <el-checkbox-group v-model="draft">
         <el-checkbox v-for="option in options" :key="option[0]" :label="option[0]">
-          <span class="column-sort-grip" aria-hidden="true"><i v-for="dot in 6" :key="dot" /></span><span>{{ option[1] }}</span>
+          <span class="column-sort-grip" aria-hidden="true"><i v-for="dot in 6" :key="dot" /></span><span class="column-label">{{ option[1] }}</span>
         </el-checkbox>
       </el-checkbox-group>
       <footer><el-button @click="cancel">取消</el-button><el-button type="primary" @click="save">保存</el-button></footer>
