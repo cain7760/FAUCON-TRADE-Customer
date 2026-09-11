@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { ArrowDownBold, CaretBottom, Search, Fold, Expand, Document, Setting, InfoFilled, Download, View, Hide } from '@element-plus/icons-vue'
+import { ArrowDownBold, CaretBottom, Search, Fold, Expand, Document, Setting, InfoFilled, Download, View, Hide, Clock, CircleCheck, CircleClose, EditPen, More } from '@element-plus/icons-vue'
 import ClientLineIcon from '../../ClientLineIcon.vue'
 import { accounts } from './fixtures'
 import { marketInstruments, variantRows, variants, money, number } from './variantData'
@@ -105,13 +105,13 @@ function chooseDock(value) { dock.value = value; if(value === 'floating' && work
 function toggleSort(prop) { const current = sortState.value; sortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
 function toggleOrderSort(prop) { const current = orderSortState.value; orderSortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
 function orderStatusVisual(status) {
-  if (status === '未报') return { tone: 'draft', icon: '○' }
-  if (['待报', '待撤', '待撤［部成］'].includes(status)) return { tone: 'pending', icon: '◷' }
-  if (status === '已报') return { tone: 'reported', icon: '●' }
-  if (['部撤', '部成', '待改［部成］'].includes(status)) return { tone: 'partial', icon: '◐' }
-  if (status === '全成') return { tone: 'success', icon: '✓' }
-  if (status === '被拒绝') return { tone: 'rejected', icon: '×' }
-  return { tone: 'review', icon: '✎' }
+  if (status === '未报') return { tone: 'draft', icon: Document }
+  if (['待报', '待撤', '待撤［部成］'].includes(status)) return { tone: 'pending', icon: Clock }
+  if (status === '已报') return { tone: 'reported', icon: CircleCheck }
+  if (['部撤', '部成', '待改［部成］'].includes(status)) return { tone: 'partial', icon: More }
+  if (status === '全成') return { tone: 'success', icon: CircleCheck }
+  if (status === '被拒绝') return { tone: 'rejected', icon: CircleClose }
+  return { tone: 'review', icon: EditPen }
 }
 watch(accountId, () => { quote.value = null })
 watch(collapsed, async () => { await nextTick(); table.value?.doLayout?.() })
@@ -172,7 +172,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
           </div>
           <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
             <el-table-column prop="runStatus" label="运行状态" width="76"><template #default="{row}"><span class="run-status" :class="row.runStatus === '运行中' ? 'is-running' : 'is-ended'"><i></i>{{ row.runStatus }}</span></template></el-table-column>
-            <el-table-column prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><i>{{ orderStatusVisual(row.status).icon }}</i>{{ row.status }}</span></template></el-table-column>
+            <el-table-column prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><el-icon><component :is="orderStatusVisual(row.status).icon" /></el-icon>{{ row.status }}</span></template></el-table-column>
             <el-table-column prop="openClose" label="开平" width="54" align="center"/>
             <el-table-column label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
             <el-table-column prop="code" label="标的代码" width="92"/>
