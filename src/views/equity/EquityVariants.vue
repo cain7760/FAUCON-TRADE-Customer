@@ -8,6 +8,7 @@ import { useTicketDock } from './useTicketDock'
 import OrderTicket from './components/OrderTicket.vue'
 import OrderBook from './components/OrderBook.vue'
 import SortHeader from './components/SortHeader.vue'
+import ColumnConfigPopover from './components/ColumnConfigPopover.vue'
 
 const initialVariant = new URLSearchParams(location.search).get('layout')
 const assetUrl = name => `${import.meta.env.BASE_URL}original-icons/${name}`
@@ -49,15 +50,21 @@ const demoOrders = ref(orderStatusMachine.map((status, index) => {
 const orderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: 'ALL' })
 const sortState = ref({ prop: null, direction: null })
 const orderSortState = ref({ prop: null, direction: null })
-const visibleColumnKeys = ref([
+const positionColumnDefaults = [
   'direction', 'code', 'name', 'price', 'opening', 'available', 'valueWan', 'marginOccupied',
   'marginRate', 'totalProfit', 'dailyRealizedProfit', 'floatingProfit', 'account', 'market',
-])
+]
+const visibleColumnKeys = ref([...positionColumnDefaults])
 const columnOptions = [
   ['direction', '多空'], ['code', '标的代码'], ['name', '标的名称'], ['price', '持仓均价/最新价'],
   ['opening', '期初数量'], ['available', '可用数量'], ['valueWan', '市值(万)'], ['marginOccupied', '保证金占用'],
   ['marginRate', '保证金率(%)'], ['totalProfit', '总盈亏'], ['dailyRealizedProfit', '日内实现盈亏'],
   ['floatingProfit', '浮动盈亏'], ['account', '账户'], ['market', '市场'],
+]
+const orderColumnDefaults = ['runStatus', 'status', 'openClose', 'side', 'code', 'name', 'attribute', 'price', 'orderValueNumber', 'filledQuantity', 'filledPrice']
+const orderVisibleColumnKeys = ref([...orderColumnDefaults])
+const orderColumnOptions = [
+  ['runStatus', '运行状态'], ['status', '委托状态'], ['openClose', '开平'], ['side', '买卖'], ['code', '标的代码'], ['name', '标的名称'], ['attribute', '委托类型'], ['price', '委托价格'], ['orderValueNumber', '委托数量/金额'], ['filledQuantity', '成交数量'], ['filledPrice', '成交均价'],
 ]
 const { dock, collapsed, dragging, floating, start } = useTicketDock(workspace)
 dock.value = variants.find(v => v.id === variant.value).dock
@@ -159,7 +166,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-table-column v-if="visibleColumnKeys.includes('account')" prop="account" label="账户" width="76" />
             <el-table-column v-if="visibleColumnKeys.includes('market')" prop="market" label="市场" width="58"><template #default="{row}">{{ row.market === 'SZ' ? '深市' : '沪市' }}</template></el-table-column>
             <el-table-column label="操作" width="72" fixed="right" align="center" header-align="center" class-name="operation-column" label-class-name="operation-column"><template #default><div class="row-actions"><button type="button">追</button><button type="button">平</button></div></template></el-table-column>
-            <el-table-column width="22" fixed="right" align="center" header-align="center" class-name="column-config-column" label-class-name="column-config-column"><template #header><el-popover placement="bottom-end" :width="220" trigger="click" popper-class="column-config-popper"><template #reference><button class="column-config-trigger" aria-label="自定义列"><el-icon><Setting /></el-icon></button></template><div class="column-config"><div><b>自定义列</b><span>选择显示字段</span></div><el-checkbox-group v-model="visibleColumnKeys"><el-checkbox v-for="option in columnOptions" :key="option[0]" :label="option[0]">{{ option[1] }}</el-checkbox></el-checkbox-group></div></el-popover></template></el-table-column>
+            <el-table-column width="22" fixed="right" align="center" header-align="center" class-name="column-config-column" label-class-name="column-config-column"><template #header><ColumnConfigPopover v-model="visibleColumnKeys" :options="columnOptions" :defaults="positionColumnDefaults" /></template></el-table-column>
           </el-table><footer class="positions-footer"><span>显示 {{ filtered.length }} / {{ allRows.length }} 条</span></footer>
         </template>
         <template v-else-if="tab==='orders'">
@@ -171,18 +178,19 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
           <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
-            <el-table-column prop="runStatus" label="运行状态" width="76"><template #default="{row}"><span class="run-status" :class="row.runStatus === '运行中' ? 'is-running' : 'is-ended'"><i></i>{{ row.runStatus }}</span></template></el-table-column>
-            <el-table-column prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><el-icon><component :is="orderStatusVisual(row.status).icon" /></el-icon>{{ row.status }}</span></template></el-table-column>
-            <el-table-column prop="openClose" label="开平" width="54" align="center"/>
-            <el-table-column label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
-            <el-table-column prop="code" label="标的代码" width="92"/>
-            <el-table-column prop="name" label="标的名称" width="110"/>
-            <el-table-column prop="attribute" label="委托类型" width="100"/>
-            <el-table-column prop="price" width="98" align="right" header-align="right"><template #header><SortHeader label="委托价格" numeric :direction="orderSortState.prop === 'price' ? orderSortState.direction : null" @sort="toggleOrderSort('price')" /></template><template #default="{row}">{{ row.price === null ? '市价' : money(row.price) }}</template></el-table-column>
-            <el-table-column prop="orderValueNumber" width="160" align="right" header-align="right"><template #header><SortHeader label="委托数量/金额" numeric :direction="orderSortState.prop === 'orderValueNumber' ? orderSortState.direction : null" @sort="toggleOrderSort('orderValueNumber')" /></template><template #default="{row}">{{ row.orderValue }}</template></el-table-column>
-            <el-table-column prop="filledQuantity" width="92" align="right" header-align="right"><template #header><SortHeader label="成交数量" numeric :direction="orderSortState.prop === 'filledQuantity' ? orderSortState.direction : null" @sort="toggleOrderSort('filledQuantity')" /></template><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>
-            <el-table-column prop="filledPrice" width="92" align="right" header-align="right"><template #header><SortHeader label="成交均价" numeric :direction="orderSortState.prop === 'filledPrice' ? orderSortState.direction : null" @sort="toggleOrderSort('filledPrice')" /></template><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
-            <el-table-column label="操作" width="70" fixed="right" align="center"><template #default="{row}"><el-button link :disabled="row.status==='已撤销'" @click="row.status='已撤销'">撤销</el-button></template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('runStatus')" prop="runStatus" label="运行状态" width="92" class-name="run-status-column" label-class-name="run-status-column"><template #default="{row}"><span class="run-status" :class="row.runStatus === '运行中' ? 'is-running' : 'is-ended'"><el-icon><CircleCheck v-if="row.runStatus === '运行中'" /><CircleClose v-else /></el-icon>{{ row.runStatus }}</span></template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('status')" prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><el-icon><component :is="orderStatusVisual(row.status).icon" /></el-icon>{{ row.status }}</span></template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('openClose')" prop="openClose" label="开平" width="54" align="center"/>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('side')" label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('code')" prop="code" label="标的代码" width="92"/>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('name')" prop="name" label="标的名称" width="110"/>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('attribute')" prop="attribute" label="委托类型" width="100"/>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('price')" prop="price" width="98" align="right" header-align="right"><template #header><SortHeader label="委托价格" numeric :direction="orderSortState.prop === 'price' ? orderSortState.direction : null" @sort="toggleOrderSort('price')" /></template><template #default="{row}">{{ row.price === null ? '市价' : money(row.price) }}</template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('orderValueNumber')" prop="orderValueNumber" width="160" align="right" header-align="right"><template #header><SortHeader label="委托数量/金额" numeric :direction="orderSortState.prop === 'orderValueNumber' ? orderSortState.direction : null" @sort="toggleOrderSort('orderValueNumber')" /></template><template #default="{row}">{{ row.orderValue }}</template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('filledQuantity')" prop="filledQuantity" width="92" align="right" header-align="right"><template #header><SortHeader label="成交数量" numeric :direction="orderSortState.prop === 'filledQuantity' ? orderSortState.direction : null" @sort="toggleOrderSort('filledQuantity')" /></template><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('filledPrice')" prop="filledPrice" width="92" align="right" header-align="right"><template #header><SortHeader label="成交均价" numeric :direction="orderSortState.prop === 'filledPrice' ? orderSortState.direction : null" @sort="toggleOrderSort('filledPrice')" /></template><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
+            <el-table-column label="操作" width="70" fixed="right" align="center" class-name="operation-column" label-class-name="operation-column"><template #default="{row}"><el-button link :disabled="row.status==='已撤销'" @click="row.status='已撤销'">撤销</el-button></template></el-table-column>
+            <el-table-column width="22" fixed="right" align="center" header-align="center" class-name="column-config-column" label-class-name="column-config-column"><template #header><ColumnConfigPopover v-model="orderVisibleColumnKeys" :options="orderColumnOptions" :defaults="orderColumnDefaults" /></template></el-table-column>
           </el-table>
         </template>
         <div v-else class="no-trades"><el-icon><Document /></el-icon><h3>暂无成交</h3><p>演示委托不会生成实际成交</p></div>
