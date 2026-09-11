@@ -294,6 +294,17 @@
 .variants-app .drag-grip i{background:#e8eaed}
 .variants-app .profit-heading .total-help .el-icon{color:currentColor}
 
+/* Dialogs inherit the application dark theme, including secondary actions. */
+.variant-confirm{--el-bg-color:#202226!important;--el-bg-color-overlay:#202226!important;--el-text-color-primary:#e8eaed!important;--el-text-color-regular:#c4cad3!important;--el-border-color:#3b3f46!important;background:#202226!important}
+.variant-confirm .el-dialog__header{margin:0;padding:18px 22px 14px;border-bottom:1px solid #303338}
+.variant-confirm .el-dialog__body{padding:18px 22px!important;background:#202226;color:#c4cad3}
+.variant-confirm .el-dialog__footer{padding:14px 22px 18px!important;background:#202226}
+.variant-confirm .el-button:not(.el-button--primary){border-color:#454a53!important;background:#292c31!important;color:#c8ced7!important}
+.variant-confirm .el-button:not(.el-button--primary):hover{border-color:#6a707a!important;background:#32363d!important;color:#f0f2f5!important}
+.variant-confirm .el-button--primary{border-color:#bb984a!important;background:#bb984a!important;color:#161819!important}
+.confirm-identity{display:flex;align-items:baseline;gap:9px;margin-bottom:18px}.confirm-identity>span{font-size:16px;font-weight:600}.confirm-identity.buy>span{color:#ef777f}.confirm-identity.sell>span{color:#55b79a}.confirm-identity strong{font-size:17px;color:#edf0f4}.confirm-identity small{color:#8d96a2;font-size:12px}
+.confirm-key-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid #343840;border-radius:4px;background:#343840;overflow:hidden}.confirm-key-metrics>div{min-width:0;padding:12px;background:#272a2f}.confirm-key-metrics span,.confirm-key-metrics small{display:block;color:#929ba7;font-size:11px}.confirm-key-metrics b{display:block;overflow:hidden;margin:5px 0 2px;color:#edf0f4;font-size:16px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}.confirm-details{display:grid;grid-template-columns:1fr auto;gap:9px 18px;margin:16px 0 0;color:#929ba7}.confirm-details dd{margin:0;color:#e1e5ea;text-align:right}.confirm-disclaimer{margin:16px 0 0;padding-top:12px;border-top:1px solid #303338;color:#89929e;font-size:11px;line-height:1.6}
+
 /* Explicit price controls: visual position and price mutation share one source of truth. */
 .variants-app .price-input-row{position:relative;display:flex;width:100%}
 .variants-app .price-input-row>.el-input-number{width:100%}
