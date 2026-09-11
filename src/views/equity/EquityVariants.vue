@@ -171,7 +171,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
           <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
-            <el-table-column prop="runStatus" label="运行状态" width="76"/>
+            <el-table-column prop="runStatus" label="运行状态" width="76"><template #default="{row}"><span class="run-status" :class="row.runStatus === '运行中' ? 'is-running' : 'is-ended'"><i></i>{{ row.runStatus }}</span></template></el-table-column>
             <el-table-column prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><i>{{ orderStatusVisual(row.status).icon }}</i>{{ row.status }}</span></template></el-table-column>
             <el-table-column prop="openClose" label="开平" width="54" align="center"/>
             <el-table-column label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
