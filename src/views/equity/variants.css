@@ -296,7 +296,7 @@
 
 /* Dialogs inherit the application dark theme, including secondary actions. */
 .variant-confirm{--el-bg-color:#202226!important;--el-bg-color-overlay:#202226!important;--el-text-color-primary:#e8eaed!important;--el-text-color-regular:#c4cad3!important;--el-border-color:#3b3f46!important;background:#202226!important}
-.variant-confirm.el-dialog{margin:0!important;padding:0!important;overflow:hidden;border:1px solid #454a53;border-radius:5px;background:#202226!important;box-shadow:0 22px 64px #000b}
+.variant-confirm.el-dialog{position:absolute;top:50%;left:50%;height:auto!important;min-height:0!important;max-height:calc(100vh - 40px);margin:0!important;padding:0!important;overflow:hidden;border:1px solid #454a53;border-radius:5px;background:#202226!important;box-shadow:0 22px 64px #000b;transform:translate(-50%,-50%)}
 .variant-confirm .el-dialog__header{display:flex;align-items:center;height:42px;margin:0;padding:0 14px;border-bottom:1px solid #343840;background:#24272c}
 .variant-confirm .el-dialog__title{color:#e8eaed;font-size:14px;font-weight:600;letter-spacing:.2px}
 .variant-confirm .el-dialog__headerbtn{top:0;right:0;display:grid;place-items:center;width:42px;height:42px;color:#9ba4af}
