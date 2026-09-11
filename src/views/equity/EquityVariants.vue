@@ -72,8 +72,8 @@ function exportPositions() {
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' })); link.download = '持仓列表.csv'; link.click(); URL.revokeObjectURL(link.href)
 }
 function exportOrders() {
-  const header = ['运行状态', '委托状态', '开平', '买卖', '标的代码', '标的名称', '委托属性', '委托价格', '委托数量/金额']
-  const records = orders.value.map(row => [row.runStatus, row.status, row.openClose, row.side === 'buy' ? '买' : '卖', row.code, row.name, row.attribute, row.price === null ? '市价' : money(row.price), row.orderValue])
+  const header = ['运行状态', '委托状态', '开平', '买卖', '标的代码', '标的名称', '委托属性', '委托价格', '委托数量/金额', '成交数量', '成交均价']
+  const records = orders.value.map(row => [row.runStatus, row.status, row.openClose, row.side === 'buy' ? '买' : '卖', row.code, row.name, row.attribute, row.price === null ? '市价' : money(row.price), row.orderValue, row.filledQuantity ? number(row.filledQuantity) : '--', row.filledPrice === null ? '--' : money(row.filledPrice)])
   const csv = [header, ...records].map(record => record.map(value => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n')
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' })); link.download = '委托记录.csv'; link.click(); URL.revokeObjectURL(link.href)
 }
@@ -147,6 +147,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-table-column prop="attribute" label="委托属性" width="100"/>
             <el-table-column prop="price" label="委托价格" width="98" align="right" header-align="right" sortable><template #default="{row}">{{ row.price === null ? '市价' : money(row.price) }}</template></el-table-column>
             <el-table-column prop="orderValueNumber" label="委托数量/金额" width="160" align="right" header-align="right" sortable><template #default="{row}">{{ row.orderValue }}</template></el-table-column>
+            <el-table-column prop="filledQuantity" label="成交数量" width="92" align="right" header-align="right" sortable><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>
+            <el-table-column prop="filledPrice" label="成交均价" width="92" align="right" header-align="right" sortable><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
             <el-table-column label="操作" width="70" fixed="right" align="center"><template #default="{row}"><el-button link :disabled="row.status==='已撤销'" @click="row.status='已撤销'">撤销</el-button></template></el-table-column>
           </el-table>
         </template>
