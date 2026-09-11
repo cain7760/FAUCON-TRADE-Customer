@@ -261,10 +261,10 @@
 .variants-app .ticket-assets .asset-summary-grid{gap:16px!important;padding:10px 12px!important}
 .variants-app .ticket-assets .asset-summary-grid .asset-metric{min-height:0;padding:0!important}
 .variants-app .ticket-assets .asset-summary-grid .asset-metric+.asset-metric{border-top:0!important}
-.variants-app .order-type-row{height:40px}
-.variants-app .order-type-row .order-type{display:flex;width:100%;height:40px}
+.variants-app .order-type-row{height:28px}
+.variants-app .order-type-row .order-type{display:flex;width:100%;height:28px}
 .variants-app .order-type-row .el-radio-button{flex:1}
-.variants-app .order-type-row .el-radio-button__inner{width:100%;min-width:0;height:40px;padding:0 12px;border:1px solid #3b3f46!important;background:transparent;color:#929aa6;font-size:11px;line-height:38px;box-shadow:none!important}
+.variants-app .order-type-row .el-radio-button__inner{width:100%;min-width:0;height:28px;padding:0 12px;border:1px solid #3b3f46!important;background:transparent;color:#929aa6;font-size:12px;line-height:26px;box-shadow:none!important}
 .variants-app .order-type-row .el-radio-button+.el-radio-button .el-radio-button__inner{margin-left:-1px}
 .variants-app .order-type-row .el-radio-button.is-active .el-radio-button__inner{position:relative;z-index:1;border-color:#bb984a!important;background:#353026;color:#e1c36f}
 .variant-popper .instrument-select-header{padding:2px 0 4px}
@@ -296,9 +296,14 @@
 
 /* Dialogs inherit the application dark theme, including secondary actions. */
 .variant-confirm{--el-bg-color:#202226!important;--el-bg-color-overlay:#202226!important;--el-text-color-primary:#e8eaed!important;--el-text-color-regular:#c4cad3!important;--el-border-color:#3b3f46!important;background:#202226!important}
-.variant-confirm .el-dialog__header{margin:0;padding:18px 22px 14px;border-bottom:1px solid #303338}
-.variant-confirm .el-dialog__body{padding:18px 22px!important;background:#202226;color:#c4cad3}
-.variant-confirm .el-dialog__footer{padding:14px 22px 18px!important;background:#202226}
+.variant-confirm.el-dialog{margin:0!important;padding:0!important;overflow:hidden;border:1px solid #454a53;border-radius:5px;background:#202226!important;box-shadow:0 22px 64px #000b}
+.variant-confirm .el-dialog__header{display:flex;align-items:center;height:42px;margin:0;padding:0 14px;border-bottom:1px solid #343840;background:#24272c}
+.variant-confirm .el-dialog__title{color:#e8eaed;font-size:14px;font-weight:600;letter-spacing:.2px}
+.variant-confirm .el-dialog__headerbtn{top:0;right:0;display:grid;place-items:center;width:42px;height:42px;color:#9ba4af}
+.variant-confirm .el-dialog__headerbtn:hover{background:#ffffff0a;color:#e8eaed}
+.variant-confirm .el-dialog__body{padding:16px!important;background:#202226;color:#c4cad3}
+.variant-confirm .el-dialog__footer{display:flex;justify-content:flex-end;gap:8px;margin:0;padding:12px 16px!important;border-top:1px solid #343840;background:#24272c}
+.variant-confirm .el-dialog__footer .el-button{height:30px;margin:0!important;padding:0 14px;font-size:12px}
 .variant-confirm .el-button:not(.el-button--primary){border-color:#454a53!important;background:#292c31!important;color:#c8ced7!important}
 .variant-confirm .el-button:not(.el-button--primary):hover{border-color:#6a707a!important;background:#32363d!important;color:#f0f2f5!important}
 .variant-confirm .el-button--primary{border-color:#bb984a!important;background:#bb984a!important;color:#161819!important}
