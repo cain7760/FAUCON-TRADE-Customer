@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" data="images/浅色模式/u123.svg" class="img generatedImage">
+
+  <defs>
+    <pattern id="u123_img_bgp" patternUnits="userSpaceOnUse" alignment="0 0" imageRepeat="None" />
+    <mask fill="white" id="u123_img_cl3479">
+      <path d="M 0 2  L 0 0  L 12 0  L 12 2  L 0 2  Z " fill-rule="evenodd" />
+    </mask>
+  </defs>
+  <g transform="matrix(1 0 0 1 -1621 -22 )">
+    <path d="M 0 2  L 0 0  L 12 0  L 12 2  L 0 2  Z " fill-rule="nonzero" fill="rgba(203, 213, 225, 1)" stroke="none" transform="matrix(1 0 0 1 1621 22 )" class="fill" />
+    <path d="M 0 2  L 0 0  L 12 0  L 12 2  L 0 2  Z " stroke-width="0" stroke-dasharray="0" stroke="rgba(232, 234, 237, 1)" fill="none" transform="matrix(1 0 0 1 1621 22 )" class="stroke" mask="url(#u123_img_cl3479)" />
+  </g>
+                        </svg>

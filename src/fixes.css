@@ -1,0 +1,217 @@
+/* Vue 版布局与原型图层修正：覆盖基础样式，不修改 Element Plus 运行时。 */
+.source-composite {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 16px;
+  height: 16px;
+}
+
+.source-composite img {
+  position: absolute;
+  display: block;
+}
+
+.main-nav button:hover .nav-icon,
+.main-nav button.active .nav-icon,
+.rail-item:hover .rail-icon,
+.rail-item.active .rail-icon,
+.rail-control:hover .rail-control-icon {
+  filter: sepia(.8) saturate(1.35) brightness(1.08);
+}
+
+.client-line-icon {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rail-line-icon {
+  width: 20px;
+  height: 20px;
+  filter: none !important;
+}
+
+.top-line-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.window-line-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.icon-action,
+.window-action {
+  flex: 0 0 28px;
+  height: 28px;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+.account {
+  height: 28px;
+  padding: 0 4px !important;
+  line-height: 1;
+}
+
+.icon-action,
+.window-action {
+  border-radius: 3px;
+}
+
+.rail-bottom {
+  gap: 4px;
+  padding-bottom: 0;
+}
+
+.rail-bottom > i {
+  flex: 0 0 1px;
+  margin: 0 0 12px;
+}
+
+.rail-control {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  border-radius: 4px;
+  transition: background-color 120ms ease;
+}
+
+.rail-control:hover {
+  background: #25251d;
+}
+
+.settings-dialog.el-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  height: 500px;
+  max-height: calc(100vh - 32px);
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: translate(-50%, -50%);
+}
+
+.settings-title h2 {
+  margin: 0;
+  color: #f4f7fb;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.settings-dialog .el-dialog__body {
+  height: 396px;
+  max-height: calc(100vh - 136px);
+  overflow: hidden;
+}
+
+.settings-layout,
+.settings-content {
+  min-height: 0;
+}
+
+.settings-layout {
+  overflow: hidden;
+}
+
+.settings-content {
+  height: 100%;
+}
+
+.settings-nav {
+  flex-basis: 160px;
+}
+
+.settings-nav button {
+  gap: 7px;
+  padding: 0 11px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.settings-dialog .el-radio-button__inner {
+  border: 1px solid #303238 !important;
+  background: #303238 !important;
+}
+
+.settings-dialog .el-radio-button__original-radio:checked + .el-radio-button__inner {
+  border-color: #bb984a !important;
+  background: #303238 !important;
+  color: #bb984a !important;
+}
+
+.settings-menu-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settings-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-dialog .settings-radio.el-radio {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  margin: 0 !important;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #303238;
+  color: #b9c5d5;
+  font-size: 12px;
+}
+
+.settings-dialog .settings-radio.el-radio:hover {
+  background: #303237;
+}
+
+.settings-dialog .settings-radio .el-radio__input {
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings-dialog .settings-radio .el-radio__inner {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #8993a0;
+  background: #303238;
+}
+
+.settings-dialog .settings-radio .el-radio__inner::after {
+  display: none;
+}
+
+.settings-dialog .settings-radio .el-radio__label {
+  padding-left: 6px;
+  color: inherit;
+  font-size: 12px;
+}
+
+.settings-dialog .settings-radio.el-radio.is-checked {
+  border-color: #bb984a;
+  color: #bb984a;
+}
+
+.settings-dialog .settings-radio .el-radio__input.is-checked .el-radio__inner {
+  border-color: #bb984a;
+  background: #303238;
+}
+
+.settings-dialog .settings-radio .el-radio__input.is-checked + .el-radio__label {
+  color: #bb984a;
+}
