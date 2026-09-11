@@ -35,7 +35,8 @@ function stepPrice(direction) { const current = Number(price.value) || 0; price.
 function preview(side) {
   if (!(side === 'buy' ? canBuy.value : canSell.value)) return
   if (side === 'buy' && estimatedPrice.value * shares.value > props.account.cash) { insufficientFunds.value = true; return }
-  snapshot.value = { id: Date.now(), account: props.account.id, code: props.symbol.code, name: props.symbol.name, type: orderType.value, side, quantity: shares.value, price: orderType.value === 'limit' ? price.value : null, estimate: estimatedPrice.value * shares.value, status: '本地记录' }
+  const id = Date.now()
+  snapshot.value = { id, orderNo: `WT${id}`, account: props.account.id, code: props.symbol.code, name: props.symbol.name, type: orderType.value, side, quantity: shares.value, price: orderType.value === 'limit' ? price.value : null, estimate: estimatedPrice.value * shares.value, status: '待报', runStatus: '运行中', openClose: '开', attribute: `${orderType.value === 'limit' ? '限价' : '市价'}·${quantityMode.value === 'quantity' ? '数量' : '金额'}`, orderValue: quantityMode.value === 'quantity' ? `${number(shares.value)} 股` : `${money(amount.value || 0)} CNY` }
   confirming.value = true
 }
 function submit() { emit('order', { ...snapshot.value }); reset() }
