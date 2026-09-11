@@ -180,8 +180,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
           <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
             <el-table-column v-if="orderVisibleColumnKeys.includes('runStatus')" prop="runStatus" label="运行状态" width="92" class-name="run-status-column" label-class-name="run-status-column"><template #default="{row}"><span class="run-status" :class="row.runStatus === '运行中' ? 'is-running' : 'is-ended'"><el-icon><CircleCheck v-if="row.runStatus === '运行中'" /><CircleClose v-else /></el-icon>{{ row.runStatus }}</span></template></el-table-column>
             <el-table-column v-if="orderVisibleColumnKeys.includes('status')" prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><el-icon><component :is="orderStatusVisual(row.status).icon" /></el-icon>{{ row.status }}</span></template></el-table-column>
-            <el-table-column v-if="orderVisibleColumnKeys.includes('openClose')" prop="openClose" label="开平" width="54" align="center"/>
-            <el-table-column v-if="orderVisibleColumnKeys.includes('side')" label="买卖" width="54" align="center"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('openClose')" prop="openClose" label="开平" width="54" align="left" header-align="left"/>
+            <el-table-column v-if="orderVisibleColumnKeys.includes('side')" label="买卖" width="54" align="left" header-align="left"><template #default="{row}"><span :class="row.side==='buy'?'up':'down'">{{ row.side==='buy'?'买':'卖' }}</span></template></el-table-column>
             <el-table-column v-if="orderVisibleColumnKeys.includes('code')" prop="code" label="标的代码" width="92"/>
             <el-table-column v-if="orderVisibleColumnKeys.includes('name')" prop="name" label="标的名称" width="110"/>
             <el-table-column v-if="orderVisibleColumnKeys.includes('attribute')" prop="attribute" label="委托类型" width="100"/>
