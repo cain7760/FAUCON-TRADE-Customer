@@ -9,6 +9,7 @@ import OrderTicket from './components/OrderTicket.vue'
 import OrderBook from './components/OrderBook.vue'
 import SortHeader from './components/SortHeader.vue'
 import ColumnConfigPopover from './components/ColumnConfigPopover.vue'
+import TradingTable from './components/TradingTable.vue'
 
 const initialVariant = new URLSearchParams(location.search).get('layout')
 const assetUrl = name => `${import.meta.env.BASE_URL}original-icons/${name}`
@@ -149,7 +150,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         <header class="positions-tabs"><button :class="{active:tab==='positions'}" @click="tab='positions'">所有持仓<span>({{ allRows.length }})</span></button><button :class="{active:tab==='orders'}" @click="tab='orders'">所有委托<span>({{ orders.length }})</span></button><button :class="{active:tab==='trades'}" @click="tab='trades'">所有成交<span>(0)</span></button><el-switch v-model="showAll" active-text="展示全部账户" size="small" /><button v-if="collapsed" class="workspace-restore-ticket" @click="collapsed=false"><el-icon class="restore-panel-icon" style="color:#9ba3af!important;font-size:12px!important"><Expand /></el-icon><span class="restore-panel-label" style="color:#9ba3af!important;font-size:12px!important">展开下单面板</span></button></header>
         <template v-if="tab==='positions'">
           <div class="position-filters"><el-input v-model="query" :prefix-icon="Search" placeholder="代码 / 名称" aria-label="搜索持仓" clearable /><el-select v-model="market" aria-label="持仓市场" popper-class="variant-popper"><el-option label="全部市场" value="ALL"/><el-option label="深市" value="SZ"/><el-option label="沪市" value="SH"/></el-select><el-select v-model="positionType" aria-label="多空类型筛选" popper-class="variant-popper"><el-option label="全部多空类型" value="ALL"/><el-option label="多头" value="多"/><el-option label="空头" value="空"/></el-select><el-button class="filter-query" @click="applyFilters">查询</el-button><el-button link @click="clearFilters">重置</el-button><el-tooltip content="导出当前持仓" placement="top"><button class="export-positions" aria-label="导出持仓" @click="exportPositions"><el-icon><Download /></el-icon></button></el-tooltip></div>
-          <el-table ref="table" class="original-fields" :data="sortedRows" height="100%" row-key="id" :row-class-name="({row})=>row.code===selectedCode && row.account===accountId?'chosen-position':''" @row-click="selectRow" empty-text="无匹配持仓，请调整或重置筛选">
+          <TradingTable ref="table" class="original-fields" :data="sortedRows" height="100%" row-key="id" :row-class-name="({row})=>row.code===selectedCode && row.account===accountId?'chosen-position':''" @row-click="selectRow" empty-text="无匹配持仓，请调整或重置筛选">
             <el-table-column type="index" width="30" fixed align="center" />
             <el-table-column v-if="visibleColumnKeys.includes('direction')" prop="direction" label="多空" width="48" align="center" header-align="center" class-name="direction-column" label-class-name="direction-column"><template #default="{row}"><span class="direction-chip" :class="row.direction === '多' ? 'long' : 'short'">{{ row.direction }}</span></template></el-table-column>
             <el-table-column v-if="visibleColumnKeys.includes('code')" prop="code" width="96"><template #header><SortHeader label="标的代码" :direction="sortState.prop === 'code' ? sortState.direction : null" @sort="toggleSort('code')" /></template><template #default="{row}">{{ row.code }}.{{ row.market }}</template></el-table-column>
@@ -167,7 +168,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-table-column v-if="visibleColumnKeys.includes('market')" prop="market" label="市场" width="58"><template #default="{row}">{{ row.market === 'SZ' ? '深市' : '沪市' }}</template></el-table-column>
             <el-table-column label="操作" width="72" fixed="right" align="center" header-align="center" class-name="operation-column" label-class-name="operation-column"><template #default><div class="row-actions"><button type="button">追</button><button type="button">平</button></div></template></el-table-column>
             <el-table-column width="22" fixed="right" align="center" header-align="center" class-name="column-config-column" label-class-name="column-config-column"><template #header><ColumnConfigPopover v-model="visibleColumnKeys" :options="columnOptions" :defaults="positionColumnDefaults" /></template></el-table-column>
-          </el-table><footer class="positions-footer"><span>显示 {{ filtered.length }} / {{ allRows.length }} 条</span></footer>
+          </TradingTable><footer class="positions-footer"><span>显示 {{ filtered.length }} / {{ allRows.length }} 条</span></footer>
         </template>
         <template v-else-if="tab==='orders'">
           <div class="order-filters">
@@ -177,7 +178,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-select v-model="orderFilters.status" aria-label="委托状态筛选" popper-class="variant-popper"><el-option v-for="option in orderStatusOptions" :key="option.value" :label="option.label" :value="option.value" /></el-select>
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
-          <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
+          <TradingTable class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
             <el-table-column v-if="orderVisibleColumnKeys.includes('runStatus')" prop="runStatus" label="运行状态" width="92" class-name="run-status-column" label-class-name="run-status-column"><template #default="{row}"><span class="run-status" :class="row.runStatus === '运行中' ? 'is-running' : 'is-ended'"><el-icon><CircleCheck v-if="row.runStatus === '运行中'" /><CircleClose v-else /></el-icon>{{ row.runStatus }}</span></template></el-table-column>
             <el-table-column v-if="orderVisibleColumnKeys.includes('status')" prop="status" label="委托状态" width="112"><template #default="{row}"><span class="order-status" :class="`is-${orderStatusVisual(row.status).tone}`"><el-icon><component :is="orderStatusVisual(row.status).icon" /></el-icon>{{ row.status }}</span></template></el-table-column>
             <el-table-column v-if="orderVisibleColumnKeys.includes('openClose')" prop="openClose" label="开平" width="54" align="left" header-align="left"/>
@@ -191,7 +192,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-table-column v-if="orderVisibleColumnKeys.includes('filledPrice')" prop="filledPrice" width="92" align="right" header-align="right"><template #header><SortHeader label="成交均价" numeric :direction="orderSortState.prop === 'filledPrice' ? orderSortState.direction : null" @sort="toggleOrderSort('filledPrice')" /></template><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
             <el-table-column label="操作" width="70" fixed="right" align="center" class-name="operation-column" label-class-name="operation-column"><template #default="{row}"><el-button link :disabled="row.status==='已撤销'" @click="row.status='已撤销'">撤销</el-button></template></el-table-column>
             <el-table-column width="22" fixed="right" align="center" header-align="center" class-name="column-config-column" label-class-name="column-config-column"><template #header><ColumnConfigPopover v-model="orderVisibleColumnKeys" :options="orderColumnOptions" :defaults="orderColumnDefaults" /></template></el-table-column>
-          </el-table>
+          </TradingTable>
         </template>
         <div v-else class="no-trades"><el-icon><Document /></el-icon><h3>暂无成交</h3><p>演示委托不会生成实际成交</p></div>
       </section>
