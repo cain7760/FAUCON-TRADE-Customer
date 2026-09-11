@@ -31,6 +31,7 @@ const tab = ref('positions'), selectedCode = ref('000001'), table = ref(null), q
 const demoOrders = ref([])
 const orderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: 'ALL' })
 const sortState = ref({ prop: null, direction: null })
+const orderSortState = ref({ prop: null, direction: null })
 const visibleColumnKeys = ref([
   'direction', 'code', 'name', 'price', 'opening', 'available', 'valueWan', 'marginOccupied',
   'marginRate', 'totalProfit', 'dailyRealizedProfit', 'floatingProfit', 'account', 'market',
@@ -59,6 +60,12 @@ const sortedRows = computed(() => {
   })
 })
 const orders = computed(() => demoOrders.value.filter(o => (showAll.value || o.account === accountId.value) && (!orderFilters.value.orderNo || o.orderNo.includes(orderFilters.value.orderNo.trim())) && (!orderFilters.value.symbol || `${o.code}${o.name}`.includes(orderFilters.value.symbol.trim())) && (orderFilters.value.side === 'ALL' || o.side === orderFilters.value.side) && (orderFilters.value.openClose === 'ALL' || o.openClose === orderFilters.value.openClose) && (orderFilters.value.status === 'ALL' || o.status === orderFilters.value.status)))
+const sortedOrders = computed(() => {
+  const { prop, direction } = orderSortState.value
+  if (!prop || !direction) return orders.value
+  const multiplier = direction === 'ascending' ? 1 : -1
+  return [...orders.value].sort((a, b) => ((Number(a[prop]) || 0) - (Number(b[prop]) || 0)) * multiplier)
+})
 const floatStyle = computed(() => dock.value === 'floating' ? { left: `${floating.value.x}px`, top: `${floating.value.y}px`, width:`${floating.value.width}px`, height:`${floating.value.height}px` } : {})
 function chooseVariant(id) { variant.value = id; dock.value = variants.find(v => v.id === id).dock; collapsed.value = false; history.replaceState(null,'',`${location.pathname}?layout=${id}`) }
 function toggleAssetsVisible() { assetsVisible.value = !assetsVisible.value; if (assetsCollapsed.value) assetsCollapsed.value = false }
@@ -79,6 +86,7 @@ function exportOrders() {
 }
 function chooseDock(value) { dock.value = value; if(value === 'floating' && workspace.value) floating.value = {x:Math.max(0, workspace.value.clientWidth-350),y:12,width:340,height:Math.min(650,workspace.value.clientHeight-12)} }
 function toggleSort(prop) { const current = sortState.value; sortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
+function toggleOrderSort(prop) { const current = orderSortState.value; orderSortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
 watch(accountId, () => { quote.value = null })
 watch(collapsed, async () => { await nextTick(); table.value?.doLayout?.() })
 const accountBalance = computed(() => account.value.id === 'TZS_T0' ? 1000000 : 700000)
@@ -137,7 +145,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-select v-model="orderFilters.status" aria-label="委托状态筛选" popper-class="variant-popper"><el-option label="状态" value="ALL"/><el-option label="待报" value="待报"/><el-option label="已撤销" value="已撤销"/></el-select>
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
-          <el-table class="orders-table" :data="orders" height="100%" :fit="false" empty-text="暂无委托记录">
+          <el-table class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
             <el-table-column prop="runStatus" label="运行状态" width="76"/>
             <el-table-column prop="status" label="委托状态" width="76"/>
             <el-table-column prop="openClose" label="开平" width="54" align="center"/>
@@ -145,10 +153,10 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
             <el-table-column prop="code" label="标的代码" width="92"/>
             <el-table-column prop="name" label="标的名称" width="110"/>
             <el-table-column prop="attribute" label="委托属性" width="100"/>
-            <el-table-column prop="price" label="委托价格" width="98" align="right" header-align="right" sortable><template #default="{row}">{{ row.price === null ? '市价' : money(row.price) }}</template></el-table-column>
-            <el-table-column prop="orderValueNumber" label="委托数量/金额" width="160" align="right" header-align="right" sortable><template #default="{row}">{{ row.orderValue }}</template></el-table-column>
-            <el-table-column prop="filledQuantity" label="成交数量" width="92" align="right" header-align="right" sortable><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>
-            <el-table-column prop="filledPrice" label="成交均价" width="92" align="right" header-align="right" sortable><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
+            <el-table-column prop="price" width="98" align="right" header-align="right"><template #header><SortHeader label="委托价格" numeric :direction="orderSortState.prop === 'price' ? orderSortState.direction : null" @sort="toggleOrderSort('price')" /></template><template #default="{row}">{{ row.price === null ? '市价' : money(row.price) }}</template></el-table-column>
+            <el-table-column prop="orderValueNumber" width="160" align="right" header-align="right"><template #header><SortHeader label="委托数量/金额" numeric :direction="orderSortState.prop === 'orderValueNumber' ? orderSortState.direction : null" @sort="toggleOrderSort('orderValueNumber')" /></template><template #default="{row}">{{ row.orderValue }}</template></el-table-column>
+            <el-table-column prop="filledQuantity" width="92" align="right" header-align="right"><template #header><SortHeader label="成交数量" numeric :direction="orderSortState.prop === 'filledQuantity' ? orderSortState.direction : null" @sort="toggleOrderSort('filledQuantity')" /></template><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>
+            <el-table-column prop="filledPrice" width="92" align="right" header-align="right"><template #header><SortHeader label="成交均价" numeric :direction="orderSortState.prop === 'filledPrice' ? orderSortState.direction : null" @sort="toggleOrderSort('filledPrice')" /></template><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
             <el-table-column label="操作" width="70" fixed="right" align="center"><template #default="{row}"><el-button link :disabled="row.status==='已撤销'" @click="row.status='已撤销'">撤销</el-button></template></el-table-column>
           </el-table>
         </template>

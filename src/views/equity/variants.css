@@ -335,9 +335,7 @@
 .variants-app .export-orders{display:grid;place-items:center;width:28px;height:28px;margin-left:auto;padding:0;border:1px solid #3b3f46;border-radius:3px;background:#25282d;color:#aeb6c1;cursor:pointer}
 .variants-app .export-orders:hover{border-color:#bb984a;background:#302d25;color:#e1c36f}
 .variants-app .export-orders .el-icon{font-size:14px}
-.variants-app .orders-table{flex:1;min-height:0;--el-table-bg-color:#1e2023;--el-table-tr-bg-color:#1e2023;--el-table-header-bg-color:#25282d;--el-table-border-color:#303338;--el-table-row-hover-bg-color:#292d33;--el-table-text-color:#c8ced7;--el-table-header-text-color:#929ba7}
-.variants-app .orders-table .el-table__inner-wrapper:before{display:none}.variants-app .orders-table .el-table__cell{height:34px;padding:0;border-bottom-color:#2a2d32}.variants-app .orders-table .el-table__header .el-table__cell{height:36px;font-size:11px}.variants-app .orders-table .cell{font-size:12px;line-height:34px;white-space:nowrap}
-.variants-app .orders-table .el-table__header th:first-child .cell,.variants-app .orders-table .el-table__body td:first-child .cell{padding-left:12px}
+.variants-app .orders-table{flex:1;min-height:0}
 .variants-app .orders-table .el-table__fixed-right{z-index:4;box-shadow:-5px 0 10px #0004}.variants-app .orders-table .el-table__fixed-right-patch{z-index:4;background:#1e2023}.variants-app .orders-table .el-table__fixed-right .el-table__header-wrapper{position:relative;z-index:5;background:#25282d}.variants-app .orders-table .el-table__fixed-right .el-table__cell{background:#1e2023}.variants-app .orders-table .el-table__fixed-right .el-table__header .el-table__cell{background:#25282d}
 
 /* 余额不足时让账户余额成为明确的对比焦点，操作收束到弹窗底部中间。 */
