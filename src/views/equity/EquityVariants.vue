@@ -16,6 +16,26 @@ const assetUrl = name => `${import.meta.env.BASE_URL}original-icons/${name}`
 const variant = ref(variants.some(v => v.id === initialVariant) ? initialVariant : 'classic')
 const activeNav = ref('权益交易')
 const viewportWidth = ref(window.innerWidth)
+const messageCenterVisible = ref(false)
+const messageCategory = ref('全部')
+const headerNoticeKey = 'faucon-header-notice-dismissed-v1'
+const showHeaderNotice = ref(true)
+const emergencyMessage = ref(null)
+const headerNotice = {
+  id: 'system-maintenance-20260911',
+  text: '尊敬的客户，您好。交易系统将于 2026 年 9 月 14 日 02:00—04:00 进行例行维护，期间部分查询服务可能短暂不可用。',
+}
+const messages = ref([
+  { id: 1, category: '通知', title: '系统例行维护通知', content: '交易系统将于 9 月 14 日 02:00—04:00 进行例行维护，请提前安排交易。', time: '今天 10:20', unread: true },
+  { id: 2, category: '待办', title: '请完成适当性评估更新', content: '您的专业投资者适当性资料将在 30 天后到期，请在到期前完成更新。', time: '今天 09:15', unread: true },
+  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true },
+  { id: 4, category: '通知', title: '账户资金划转完成', content: '资金划转申请已处理完成，到账金额 100,000.00 CNY。', time: '昨天 11:06', unread: false },
+  { id: 5, category: '待办', title: '风险测评即将到期', content: '您的风险承受能力测评将在 2026 年 10 月 8 日到期。', time: '09-09 16:30', unread: false },
+  { id: 6, category: '消息', title: '撤单申请已受理', content: '招商银行（600036）撤单申请已提交，当前状态：待撤。', time: '09-08 13:46', unread: false },
+])
+const messageCategories = ['全部', '通知', '消息', '待办']
+const filteredMessages = computed(() => messageCategory.value === '全部' ? messages.value : messages.value.filter(item => item.category === messageCategory.value))
+const unreadMessageCount = computed(() => messages.value.filter(item => item.unread).length)
 // 直接复用 Axure 导出的原始 SVG 图层；一个菜单图标由一个或两个图层组成。
 const mainNav = [
   { label: '权益交易', icon: [['u76.svg', 0, 0, 14, 9], ['u77.svg', 0, 4, 14, 10]] },
@@ -93,6 +113,15 @@ const sortedOrders = computed(() => {
 })
 const floatStyle = computed(() => dock.value === 'floating' ? { left: `${floating.value.x}px`, top: `${floating.value.y}px`, width:`${floating.value.width}px`, height:`${floating.value.height}px` } : {})
 function chooseVariant(id) { variant.value = id; dock.value = variants.find(v => v.id === id).dock; collapsed.value = false; history.replaceState(null,'',`${location.pathname}?layout=${id}`) }
+function openMessageCenter() { messageCenterVisible.value = true }
+function markMessageRead(message) { message.unread = false }
+function dismissHeaderNotice() {
+  showHeaderNotice.value = false
+  localStorage.setItem(headerNoticeKey, '1')
+}
+function showEmergency(message) {
+  if (message?.urgent) emergencyMessage.value = message
+}
 function toggleAssetsVisible() { assetsVisible.value = !assetsVisible.value; if (assetsCollapsed.value) assetsCollapsed.value = false }
 function selectRow(row) { accountId.value = row.account; selectedCode.value = row.code }
 function applyFilters() { table.value?.setScrollTop?.(0) }
@@ -138,13 +167,25 @@ function assetAmountParts(value) {
 }
 function acceptOrder(order) { demoOrders.value.unshift(order); tab.value = 'orders' }
 function updateViewportWidth() { viewportWidth.value = window.innerWidth }
-onMounted(() => window.addEventListener('resize', updateViewportWidth))
+onMounted(() => {
+  showHeaderNotice.value = localStorage.getItem(headerNoticeKey) !== '1'
+  window.addEventListener('resize', updateViewportWidth)
+  showEmergency(messages.value.find(item => item.urgent))
+})
 onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
 </script>
 
 <template>
   <main class="variants-app" :class="`version-${variant}`">
-    <header class="variant-header"><img :src="assetUrl('logo-faucon-trade.png')" alt="FAUCON TRADE"><i class="header-brand-divider" aria-hidden="true"></i><nav aria-label="产品菜单"><button v-for="item in visibleNav" :key="item.label" :class="{ active: activeNav === item.label }" @click="activeNav = item.label"><span class="nav-menu-content"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span><span class="nav-menu-label">{{ item.label }}</span></span></button><el-dropdown v-if="overflowNav.length" trigger="click" popper-class="variant-nav-popper" @command="label => activeNav = label"><button class="more-nav" :class="{ active: overflowNav.some(item => item.label === activeNav) }">更多<el-icon><CaretBottom /></el-icon></button><template #dropdown><el-dropdown-menu><el-dropdown-item v-for="item in overflowNav" :key="item.label" :command="item.label"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span>{{ item.label }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown></nav><div class="variant-header-end"><span class="demo-label">演示环境</span><button class="notification-action" aria-label="系统消息"><ClientLineIcon type="notification" /></button><span class="small-avatar">K</span><span>Kevin Zhang</span></div></header>
+    <header class="variant-header">
+      <img :src="assetUrl('logo-faucon-trade.png')" alt="FAUCON TRADE"><i class="header-brand-divider" aria-hidden="true"></i>
+      <nav aria-label="产品菜单">
+        <button v-for="item in visibleNav" :key="item.label" :class="{ active: activeNav === item.label }" @click="activeNav = item.label"><span class="nav-menu-content"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span><span class="nav-menu-label">{{ item.label }}</span></span></button>
+        <el-dropdown v-if="overflowNav.length" trigger="click" popper-class="variant-nav-popper" @command="label => activeNav = label"><button class="more-nav" :class="{ active: overflowNav.some(item => item.label === activeNav) }">更多<el-icon><CaretBottom /></el-icon></button><template #dropdown><el-dropdown-menu><el-dropdown-item v-for="item in overflowNav" :key="item.label" :command="item.label"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span>{{ item.label }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
+      </nav>
+      <div v-if="showHeaderNotice" class="header-marquee" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><b>系统通知：</b><span>{{ headerNotice.text }}</span><i aria-hidden="true"></i><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><CircleClose /></el-icon></button></div>
+      <div class="variant-header-end"><span class="demo-label">演示环境</span><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="unreadMessageCount">{{ unreadMessageCount }}</em></button><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
+    </header>
     <div ref="workspace" class="variants-workspace" :class="[`dock-${dock}`,{'ticket-collapsed':collapsed,'is-dragging':dragging}]">
       <section class="positions-pane workspace-panel">
         <header class="positions-tabs"><button :class="{active:tab==='positions'}" @click="tab='positions'">所有持仓<span>({{ allRows.length }})</span></button><button :class="{active:tab==='orders'}" @click="tab='orders'">所有委托<span>({{ orders.length }})</span></button><button :class="{active:tab==='trades'}" @click="tab='trades'">所有成交<span>(0)</span></button><el-switch v-model="showAll" active-text="展示全部账户" size="small" /><button v-if="collapsed" class="workspace-restore-ticket" @click="collapsed=false"><el-icon class="restore-panel-icon" style="color:#9ba3af!important;font-size:12px!important"><Expand /></el-icon><span class="restore-panel-label" style="color:#9ba3af!important;font-size:12px!important">展开下单面板</span></button></header>
@@ -211,5 +252,11 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
       <div v-if="dragging" class="dock-targets"><div class="dock-target target-left">停靠左侧</div><div class="dock-target target-right">停靠右侧</div><div class="dock-target target-bottom">停靠底部</div><span class="float-instruction">拖至边缘停靠 · 放在中间悬浮</span></div>
     </div>
     <footer class="variant-status"><span><i class="status-dot"/>运行中 · 演示环境</span><span>行情：静态快照</span><span class="status-end">系统版本：方案 V0.2</span></footer>
+    <el-dialog v-model="messageCenterVisible" width="720px" align-center class="message-center-dialog" :show-close="false">
+      <template #header><header class="message-center-header"><div><h2>消息中心</h2><small>共 {{ unreadMessageCount }} 条未读</small></div><button type="button" aria-label="关闭消息中心" @click="messageCenterVisible=false"><el-icon><CircleClose /></el-icon></button></header></template>
+      <nav class="message-category-tabs" aria-label="消息分类"><button v-for="category in messageCategories" :key="category" :class="{ active: messageCategory === category }" @click="messageCategory=category">{{ category }}<span v-if="category === '全部' && unreadMessageCount">{{ unreadMessageCount }}</span></button></nav>
+      <section class="message-list" aria-label="消息列表"><button v-for="message in filteredMessages" :key="message.id" class="message-item" :class="[`is-${message.category}`, { unread: message.unread }]" @click="markMessageRead(message)"><span class="message-type-icon"><el-icon><InfoFilled v-if="message.category === '通知'" /><Document v-else-if="message.category === '消息'" /><Clock v-else /></el-icon></span><span class="message-copy"><b>{{ message.title }}</b><small>{{ message.content }}</small></span><time>{{ message.time }}</time><i v-if="message.unread" aria-label="未读"></i></button><p v-if="!filteredMessages.length" class="message-empty">当前分类暂无消息</p></section>
+    </el-dialog>
+    <el-dialog v-model="emergencyMessage" width="420px" align-center class="emergency-message-dialog" title="紧急通知"><section v-if="emergencyMessage"><h3>{{ emergencyMessage.title }}</h3><p>{{ emergencyMessage.content }}</p></section><template #footer><el-button type="primary" @click="emergencyMessage=null">我知道了</el-button></template></el-dialog>
   </main>
 </template>
