@@ -18,6 +18,7 @@ const activeNav = ref('权益交易')
 const viewportWidth = ref(window.innerWidth)
 const messageCenterVisible = ref(false)
 const messageCategory = ref('全部')
+const expandedMessageIds = ref([])
 const headerNoticeKey = 'faucon-header-notice-dismissed-v1'
 const showHeaderNotice = ref(true)
 const emergencyMessage = ref(null)
@@ -26,8 +27,8 @@ const headerNotice = {
   text: '尊敬的客户，您好。交易系统将于 2026 年 9 月 14 日 02:00—04:00 进行例行维护，期间部分查询服务可能短暂不可用。',
 }
 const messages = ref([
-  { id: 1, category: '通知', title: '系统例行维护通知', content: '交易系统将于 9 月 14 日 02:00—04:00 进行例行维护，请提前安排交易。', time: '今天 10:20', unread: true },
-  { id: 2, category: '待办', title: '请完成适当性评估更新', content: '您的专业投资者适当性资料将在 30 天后到期，请在到期前完成更新。', time: '今天 09:15', unread: true },
+  { id: 1, category: '通知', title: '系统例行维护通知', content: '交易系统将于 9 月 14 日 02:00—04:00 进行例行维护。维护期间，委托查询、资金查询及部分行情服务可能出现短暂延迟，请提前安排交易并关注后续系统通知。', time: '今天 10:20', unread: true },
+  { id: 2, category: '待办', title: '请完成适当性评估更新', content: '您的专业投资者适当性资料将在 30 天后到期，请在到期前完成更新，以免影响相关交易权限的正常使用。', time: '今天 09:15', unread: true },
   { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true },
   { id: 4, category: '通知', title: '账户资金划转完成', content: '资金划转申请已处理完成，到账金额 100,000.00 CNY。', time: '昨天 11:06', unread: false },
   { id: 5, category: '待办', title: '风险测评即将到期', content: '您的风险承受能力测评将在 2026 年 10 月 8 日到期。', time: '09-09 16:30', unread: false },
@@ -37,6 +38,9 @@ const messageCategories = ['全部', '通知', '消息', '待办']
 const filteredMessages = computed(() => messageCategory.value === '全部' ? messages.value : messages.value.filter(item => item.category === messageCategory.value))
 const unreadMessageCount = computed(() => messages.value.filter(item => item.unread).length)
 function categoryUnreadCount(category) { return messages.value.filter(item => item.unread && (category === '全部' || item.category === category)).length }
+function categoryMessageCount(category) { return messages.value.filter(item => category === '全部' || item.category === category).length }
+function needsExpansion(message) { return message.content.length > 48 }
+function messageIsExpanded(message) { return expandedMessageIds.value.includes(message.id) }
 // 直接复用 Axure 导出的原始 SVG 图层；一个菜单图标由一个或两个图层组成。
 const mainNav = [
   { label: '权益交易', icon: [['u76.svg', 0, 0, 14, 9], ['u77.svg', 0, 4, 14, 10]] },
@@ -117,6 +121,11 @@ function chooseVariant(id) { variant.value = id; dock.value = variants.find(v =>
 function openMessageCenter() { messageCenterVisible.value = true }
 function markMessageRead(message) { message.unread = false }
 function markAllMessagesRead() { messages.value.forEach(message => { message.unread = false }) }
+function toggleMessageExpansion(message) {
+  expandedMessageIds.value = messageIsExpanded(message)
+    ? expandedMessageIds.value.filter(id => id !== message.id)
+    : [...expandedMessageIds.value, message.id]
+}
 function dismissHeaderNotice() {
   showHeaderNotice.value = false
   localStorage.setItem(headerNoticeKey, '1')
@@ -255,9 +264,9 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
     </div>
     <footer class="variant-status"><span><i class="status-dot"/>运行中 · 演示环境</span><span>行情：静态快照</span><span class="status-end">系统版本：方案 V0.2</span></footer>
     <el-dialog v-model="messageCenterVisible" width="760px" align-center class="message-center-dialog" :show-close="false">
-      <template #header><header class="message-center-header"><div><h2>消息中心</h2><small>交易提醒、系统通知与待办事项</small></div><div class="message-header-actions"><button v-if="unreadMessageCount" type="button" @click="markAllMessagesRead">全部标为已读</button><button type="button" aria-label="关闭消息中心" @click="messageCenterVisible=false"><el-icon><CircleClose /></el-icon></button></div></header></template>
-      <div class="message-center-layout"><nav class="message-category-tabs" aria-label="消息分类"><button v-for="category in messageCategories" :key="category" :class="{ active: messageCategory === category }" @click="messageCategory=category"><span>{{ category }}</span><i v-if="categoryUnreadCount(category)">{{ categoryUnreadCount(category) }}</i></button></nav>
-        <section class="message-list" aria-label="消息列表"><header><b>{{ messageCategory }}</b><span>{{ filteredMessages.length }} 条信息</span></header><button v-for="message in filteredMessages" :key="message.id" class="message-item" :class="[`is-${message.category}`, { unread: message.unread }]" @click="markMessageRead(message)"><span class="message-type-icon"><el-icon><InfoFilled v-if="message.category === '通知'" /><Document v-else-if="message.category === '消息'" /><Clock v-else /></el-icon></span><span class="message-copy"><b>{{ message.title }}</b><small>{{ message.content }}</small></span><time>{{ message.time }}</time><i v-if="message.unread" aria-label="未读"></i></button><p v-if="!filteredMessages.length" class="message-empty">当前分类暂无消息</p></section>
+      <template #header><header class="message-center-header"><h2>消息中心</h2><div class="message-header-actions"><button v-if="unreadMessageCount" type="button" @click="markAllMessagesRead">全部标为已读</button><button type="button" class="message-close-action" aria-label="关闭消息中心" @click="messageCenterVisible=false"><el-icon><CircleClose /></el-icon></button></div></header></template>
+      <div class="message-center-layout"><nav class="message-category-tabs" aria-label="消息分类"><button v-for="category in messageCategories" :key="category" :class="{ active: messageCategory === category }" @click="messageCategory=category"><span>{{ category }}</span><small>{{ categoryMessageCount(category) }}</small><i v-if="categoryUnreadCount(category)">{{ categoryUnreadCount(category) }}</i></button></nav>
+        <section class="message-list" aria-label="消息列表"><header><b>{{ messageCategory }}</b><span><strong>{{ filteredMessages.length }}</strong> 条信息 · {{ categoryUnreadCount(messageCategory) }} 条未读</span></header><article v-for="message in filteredMessages" :key="message.id" class="message-item" :class="[`is-${message.category}`, { unread: message.unread, expanded: messageIsExpanded(message) }]" @click="markMessageRead(message)"><span class="message-type-icon"><el-icon><InfoFilled v-if="message.category === '通知'" /><Document v-else-if="message.category === '消息'" /><Clock v-else /></el-icon></span><div class="message-copy"><span class="message-title-row"><b>{{ message.title }}</b><em>{{ message.category }}</em></span><p>{{ message.content }}</p><button v-if="needsExpansion(message)" type="button" @click.stop="toggleMessageExpansion(message)">{{ messageIsExpanded(message) ? '收起' : '展开全部' }}</button></div><time>{{ message.time }}</time><i v-if="message.unread" aria-label="未读"></i></article><p v-if="!filteredMessages.length" class="message-empty">当前分类暂无消息</p></section>
       </div>
     </el-dialog>
     <el-dialog v-model="emergencyMessage" width="420px" align-center class="emergency-message-dialog" title="紧急通知"><section v-if="emergencyMessage"><h3>{{ emergencyMessage.title }}</h3><p>{{ emergencyMessage.content }}</p></section><template #footer><el-button type="primary" @click="emergencyMessage=null">我知道了</el-button></template></el-dialog>
