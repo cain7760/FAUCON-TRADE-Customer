@@ -110,6 +110,7 @@
 .variants-app .order-type-row .el-radio-button{flex:1}
 .variants-app .order-type-row .el-radio-button__inner{width:100%}
 .variants-app .book-ticks .trade-tick{font-size:11px}
+.variants-app .book-ticks .tick-live{animation:trade-tick-in 180ms ease-out}@keyframes trade-tick-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .variants-app .quantity-input-row>.el-select .el-select__wrapper{box-shadow:inset -1px 0 #3b3f46,inset 0 1px #3b3f46,inset 0 -1px #3b3f46!important}
 .variants-app .quantity-input-row .is-wan-unit .el-select__wrapper{background:#25282d!important;box-shadow:inset -1px 0 #3b3f46,inset 0 1px #3b3f46,inset 0 -1px #3b3f46!important}
 .variants-app .quantity-mode{display:inline-flex;align-items:center;gap:0}
