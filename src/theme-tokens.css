@@ -1,0 +1,15 @@
+:root {
+  /* Semantic market/status colors. Theme implementations override these tokens only. */
+  --ft-color-up: #ed858b;
+  --ft-color-down: #65c4a1;
+  --ft-color-up-strong: #ff727a;
+  --ft-color-down-strong: #55be92;
+  --ft-color-up-muted: #d98990;
+  --ft-color-down-muted: #79b89f;
+  --ft-color-up-surface: rgba(237, 133, 139, .12);
+  --ft-color-down-surface: rgba(101, 196, 161, .12);
+  --ft-color-up-border: #d97b83;
+  --ft-color-down-border: #5eae90;
+  --ft-color-buy: #b55f6b;
+  --ft-color-sell: #3d9275;
+}

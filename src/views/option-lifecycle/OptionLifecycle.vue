@@ -338,14 +338,14 @@ function toast(text) {
 .back-id.muted { color: #5c6878; }
 .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
 .num-gold { color: #bb984a; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
-.num-pos { color: #3d9e6b; }
-.num-neg { color: #cc4a4a; }
+.num-pos { color: var(--ft-color-down); }
+.num-neg { color: var(--ft-color-up); }
 
 .tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
 .tag.holding { background: rgba(74, 130, 196, 0.16); color: #6ea8dc; }
 .tag.partial { background: rgba(200, 136, 46, 0.18); color: #d9a04a; }
 .tag.closed { background: rgba(128, 128, 128, 0.16); color: #8b98a9; }
-.tag.type.t-open { background: rgba(61, 158, 107, 0.16); color: #3d9e6b; }
+.tag.type.t-open { background: var(--ft-color-down-surface); color: var(--ft-color-down); }
 .tag.type.t-add { background: rgba(74, 130, 196, 0.16); color: #6ea8dc; }
 .tag.type.t-reduce { background: rgba(200, 136, 46, 0.18); color: #d9a04a; }
 .tag.type.t-close { background: rgba(128, 128, 128, 0.16); color: #8b98a9; }
@@ -369,8 +369,8 @@ function toast(text) {
 .flow-table { margin-bottom: 10px; }
 .flow-summary { font-size: 12px; color: #6b7787; }
 .flow-summary b { color: #bb984a; font-family: 'JetBrains Mono', monospace; }
-.flow-summary .ok { color: #3d9e6b; margin-left: 10px; }
-.flow-summary .bad { color: #cc4a4a; margin-left: 10px; }
+.flow-summary .ok { color: var(--ft-color-down); margin-left: 10px; }
+.flow-summary .bad { color: var(--ft-color-up); margin-left: 10px; }
 </style>
 
 <style>

@@ -1,0 +1,43 @@
+:root { --el-color-danger: var(--ft-color-up); }
+
+/* Shared market direction. */
+.up { color: var(--ft-color-up) !important; }
+.down { color: var(--ft-color-down) !important; }
+.online-dot, .status-dot { background: var(--ft-color-down); }
+.client-shell .system-notice b, .client-shell .notice-speaker { color: var(--ft-color-up-strong); }
+.price-preview .up, .price-preview.reverse .down { color: var(--ft-color-up) !important; }
+.price-preview .down, .price-preview.reverse .up { color: var(--ft-color-down) !important; }
+
+/* Equity order-book, validation and action states. */
+.variants-app .double-depth button:first-child i { background: var(--ft-color-up-surface); }
+.variants-app .double-depth button + button i { background: var(--ft-color-down-surface); }
+.variants-app .double-depth button:first-child b { color: var(--ft-color-up); }
+.variants-app .double-depth button + button b { color: var(--ft-color-down); }
+.variants-app .direction-chip.long { color: var(--ft-color-up); }
+.variants-app .direction-chip.short { color: var(--ft-color-down); }
+.variants-app .price-block .price-error,
+.variants-app .quantity-block .lot-error { color: var(--ft-color-up-strong); }
+.variants-app .price-block .el-input-number.is-error .el-input__wrapper,
+.variants-app .price-block .el-input-number.is-error .el-input-number__increase,
+.variants-app .price-block .el-input-number.is-error .el-input-number__decrease,
+.variants-app .quantity-input-row.is-error .el-input__wrapper,
+.variants-app .quantity-input-row.is-error > .el-select .el-select__wrapper { box-shadow: inset 0 0 0 1px var(--ft-color-up-strong) !important; }
+.variants-app .price-input-row.is-error::after { border-color: var(--ft-color-up-strong) !important; }
+.variants-app .trade-buttons .buy-action:not(.is-disabled),
+.submit-order.buy:not(.is-disabled) { background: var(--ft-color-buy); border-color: var(--ft-color-buy); }
+.variants-app .trade-buttons .sell-action:not(.is-disabled),
+.submit-order.sell:not(.is-disabled) { background: var(--ft-color-sell); border-color: var(--ft-color-sell); }
+.variants-app .order-status.is-success,
+.variants-app .run-status.is-running { color: var(--ft-color-down); }
+.variants-app .order-status.is-rejected { color: var(--ft-color-up); }
+.variants-app .positions-pane .row-actions button { background: var(--ft-color-sell); box-shadow: inset 0 0 0 1px var(--ft-color-down-border); }
+.variants-app .positions-pane .row-actions button + button,
+.variants-app .orders-table .order-row-actions button:nth-child(3) { background: var(--ft-color-buy); box-shadow: inset 0 0 0 1px var(--ft-color-up-border); }
+.variants-app .asset-dot { background: var(--ft-color-down); box-shadow: 0 0 0 3px var(--ft-color-down-surface); }
+.variants-app .system-notice > .el-icon,
+.variants-app .header-marquee > .el-icon { color: var(--ft-color-up); }
+.variants-app .insufficient-funds .balance-compare > div:nth-child(2) b { color: var(--ft-color-up-strong); }
+.message-center-dialog .message-category-tabs button i,
+.message-center-dialog .message-category-tabs button.active i { background: var(--ft-color-buy); }
+.message-center-dialog .message-item.is-待办 .message-type-icon { color: var(--ft-color-down-muted); }
+.emergency-message-dialog .el-dialog__title { color: var(--ft-color-up); }
