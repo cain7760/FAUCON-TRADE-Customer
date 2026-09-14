@@ -5,7 +5,7 @@ import { money, number } from '../variantData'
 const props = defineProps({ instruments: Array, accounts: Array, symbol: Object, account: Object, quote: Object })
 const emit = defineEmits(['select', 'account-select', 'order'])
 const orderType = ref('limit'), price = ref(props.symbol.price), quantity = ref(0), amount = ref(0), quantityMode = ref('quantity'), fraction = ref(0)
-const symbolMarket = ref('ALL'), search = ref(''), unit = ref('shares'), confirming = ref(false), insufficientFunds = ref(false), snapshot = ref(null)
+const symbolMarket = ref('ALL'), search = ref(''), unit = ref('shares'), amountUnit = ref('yuan'), confirming = ref(false), insufficientFunds = ref(false), snapshot = ref(null)
 const instrumentSelect = ref(null), instrumentPopperWidth = ref(0)
 const quantityInputKey = ref(0)
 const displaySymbolCode = ref(props.symbol.code)
@@ -13,6 +13,10 @@ const recentCodes = ref([props.symbol.code, '600036', '300750', '600519'])
 const symbols = computed(() => props.instruments.filter(p => (symbolMarket.value === 'ALL' || (symbolMarket.value === 'A' ? ['SZ', 'SH'].includes(p.market) : p.market === 'HK')) && `${p.name}${p.code}`.toLowerCase().includes(search.value.toLowerCase())))
 const recentSymbols = computed(() => recentCodes.value.map(code => props.instruments.find(item => item.code === code)).filter(Boolean))
 const estimatedPrice = computed(() => orderType.value === 'limit' ? price.value : props.symbol.price)
+const displayedAmount = computed({
+  get: () => amountUnit.value === 'wan' ? (amount.value || 0) / 10000 : amount.value,
+  set: value => { amount.value = (Number(value) || 0) * (amountUnit.value === 'wan' ? 10000 : 1) },
+})
 const priceInvalid = computed(() => orderType.value === 'limit' && price.value === 0)
 const shares = computed(() => quantityMode.value === 'amount' ? Math.floor((amount.value || 0) / estimatedPrice.value / 100) * 100 : (quantity.value || 0) * (unit.value === 'wan' ? 10000 : 1))
 const lotInvalid = computed(() => quantityMode.value === 'quantity' && unit.value === 'shares' && quantity.value > 0 && quantity.value % 100 !== 0)
@@ -63,7 +67,7 @@ function submit() { emit('order', { ...snapshot.value }); reset() }
     <section class="quantity-block">
       <div class="field-caption"><label :for="quantityMode === 'quantity' ? 'variant-quantity' : 'variant-amount'">{{ quantityMode === 'quantity' ? '委托数量' : '委托金额' }}</label><el-radio-group v-model="quantityMode" class="quantity-mode" size="small"><el-radio-button label="quantity">数量</el-radio-button><el-radio-button label="amount">金额</el-radio-button></el-radio-group></div>
       <template v-if="quantityMode === 'quantity'"><div class="quantity-input-row" :class="{ 'is-error': lotInvalid }"><el-input-number :key="quantityInputKey" id="variant-quantity" v-model="quantity" placeholder="请输入" :step="unit === 'wan' ? 1 : 100" :precision="0" :controls="false" /><el-select v-model="unit" aria-label="数量单位" popper-class="variant-popper quantity-unit-popper" placement="bottom-end" :offset="4" :class="{ 'is-wan-unit': unit === 'wan' }"><el-option label="股" value="shares" /><el-option label="万股" value="wan" /></el-select></div><span v-if="lotInvalid" class="lot-error">委托数量须为整手，请重新输入</span></template>
-      <div v-else class="quantity-input-row amount-input-row"><el-input-number :key="quantityInputKey" id="variant-amount" v-model="amount" placeholder="请输入" :step="1000" :precision="2" :controls="false" /><span>元</span></div>
+      <div v-else class="quantity-input-row amount-input-row"><el-input-number :key="quantityInputKey" id="variant-amount" v-model="displayedAmount" placeholder="请输入" :step="amountUnit === 'wan' ? 1 : 1000" :precision="2" :controls="false" /><el-select v-model="amountUnit" aria-label="金额单位" popper-class="variant-popper quantity-unit-popper" placement="bottom-end" :offset="4" :class="{ 'is-wan-unit': amountUnit === 'wan' }"><el-option label="元" value="yuan" /><el-option label="万元" value="wan" /></el-select></div>
       <el-slider v-model="fraction" :step="1" :marks="{0:'0%',25:'25%',50:'50%',75:'75%',100:'100%'}" @input="size" />
       <div class="capacity-pair"><div>最大可买<b>{{ number(maxBuy) }} 股</b></div><div>最大可卖<b>{{ number(maxSell) }} 股</b></div></div>
     </section>
