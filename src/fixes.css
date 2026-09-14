@@ -88,13 +88,13 @@
 
 .settings-dialog.el-dialog {
   position: fixed;
-  top: 50%;
+  top: var(--ft-dialog-top);
   left: 50%;
   height: 500px;
   max-height: calc(100vh - 32px);
   margin: 0 !important;
   padding: 0 !important;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
 }
 
 .settings-title h2 {
