@@ -431,3 +431,4 @@
 .message-center-dialog .message-header-actions>.message-close-action{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:4px;background:transparent;color:#aebaca;cursor:pointer}.message-center-dialog .message-header-actions>.message-close-action:hover{border:0;background:#303237;color:#aebaca}.message-center-dialog .message-header-actions>.message-close-action .el-icon{font-size:14px}
 .variants-app .positions-pane .row-actions button,.variants-app .orders-table .order-row-actions button{font-weight:400}
 .variants-app .total-notional b{font-family:'D-DIN Exp','DIN Alternate','Arial Narrow',sans-serif;font-variant-numeric:tabular-nums}
+.transaction-toast-instrument{font-size:14px!important}.transaction-toast-instrument small{font-size:13px!important}.transaction-toast-instrument em{font-size:12px!important}
