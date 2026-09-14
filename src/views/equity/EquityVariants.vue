@@ -32,6 +32,8 @@ const colorRule = ref('red-up')
 const theme = ref('dark')
 const autoLaunch = ref(false)
 const emergencyMessage = ref(null)
+const transactionToasts = ref([])
+const transactionToastTimers = new Map()
 const headerNotice = {
   id: 'system-maintenance-20260911',
   text: '尊敬的客户，您好。交易系统将于 2026 年 9 月 14 日 02:00—04:00 进行例行维护，期间部分查询服务可能短暂不可用。',
@@ -39,7 +41,7 @@ const headerNotice = {
 const messages = ref([
   { id: 1, category: '通知', title: '系统例行维护通知', content: '交易系统将于 9 月 14 日 02:00—04:00 进行例行维护。维护期间，委托查询、资金查询及部分行情服务可能出现短暂延迟，请提前安排交易并关注后续系统通知。若您有未完成的委托，请在维护窗口开始前确认其状态；维护结束后系统会自动恢复服务，无需重复提交。', time: '今天 10:20', unread: true },
   { id: 2, category: '待办', title: '请完成适当性评估更新', content: '您的专业投资者适当性资料将在 30 天后到期，请在到期前完成更新，以免影响相关交易权限的正常使用。', time: '今天 09:15', unread: true },
-  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true },
+  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true, trade: { name: '平安银行', code: '000001', status: '全部成交', price: 11.78 } },
   { id: 4, category: '通知', title: '账户资金划转完成', content: '资金划转申请已处理完成，到账金额 100,000.00 CNY。', time: '昨天 11:06', unread: false },
   { id: 5, category: '待办', title: '风险测评即将到期', content: '您的风险承受能力测评将在 2026 年 10 月 8 日到期。', time: '09-09 16:30', unread: false },
   { id: 6, category: '消息', title: '撤单申请已受理', content: '招商银行（600036）撤单申请已提交，当前状态：待撤。', time: '09-08 13:46', unread: false },
@@ -153,6 +155,28 @@ function saveSettings() { settingsVisible.value = false }
 function showEmergency(message) {
   if (message?.urgent) emergencyMessage.value = message
 }
+function showTransactionToast(message) {
+  if (!message?.trade || transactionToastTimers.has(message.id)) return
+  transactionToasts.value = [...transactionToasts.value, message]
+  transactionToastTimers.set(message.id, window.setTimeout(() => dismissTransactionToast(message.id), 8000))
+}
+function dismissTransactionToast(id) {
+  const timer = transactionToastTimers.get(id)
+  if (timer) window.clearTimeout(timer)
+  transactionToastTimers.delete(id)
+  transactionToasts.value = transactionToasts.value.filter(message => message.id !== id)
+}
+function publishTransactionMessage({ name, code, status, price = null, title = '委托状态更新' }) {
+  const message = {
+    id: `trade-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    category: '消息', title,
+    content: `${name}（${code}）${status}${price === null ? '。' : `，成交均价 ${money(price)} CNY。`}`,
+    time: '刚刚', unread: true,
+    trade: { name, code, status, price },
+  }
+  messages.value.unshift(message)
+  showTransactionToast(message)
+}
 function toggleAssetsVisible() { assetsVisible.value = !assetsVisible.value; if (assetsCollapsed.value) assetsCollapsed.value = false }
 function applyFilters() { table.value?.setScrollTop?.(0) }
 function clearFilters() { query.value = ''; market.value = 'ALL'; positionType.value = 'ALL'; sortState.value = { prop: null, direction: null }; table.value?.clearFilter(); applyFilters() }
@@ -195,19 +219,28 @@ function assetAmountParts(value) {
     { value: rest, unit: '' },
   ]
 }
-function acceptOrder(order) { demoOrders.value.unshift(order); tab.value = 'orders' }
+function acceptOrder(order) {
+  demoOrders.value.unshift(order)
+  tab.value = 'orders'
+  publishTransactionMessage({ name: order.name, code: order.code, status: '委托已提交', title: '委托提交成功' })
+}
 function orderAction(row, action) {
-  if (action === '追单') { row.status = '已报'; row.runStatus = '运行中' }
-  if (action === '改单') { row.status = '已报待改'; row.runStatus = '运行中' }
-  if (action === '撤单') { row.status = '撤单'; row.runStatus = '已结束' }
+  if (action === '追单') { row.status = '已报'; row.runStatus = '运行中'; publishTransactionMessage({ name: row.name, code: row.code, status: '委托已报', title: '追单已提交' }) }
+  if (action === '改单') { row.status = '已报待改'; row.runStatus = '运行中'; publishTransactionMessage({ name: row.name, code: row.code, status: '改单申请已提交', title: '委托修改申请' }) }
+  if (action === '撤单') { row.status = '撤单'; row.runStatus = '已结束'; publishTransactionMessage({ name: row.name, code: row.code, status: '撤单成功', title: '委托撤单成功' }) }
 }
 function updateViewportWidth() { viewportWidth.value = window.innerWidth }
 onMounted(() => {
   showHeaderNotice.value = localStorage.getItem(headerNoticeKey) !== '1'
   window.addEventListener('resize', updateViewportWidth)
   showEmergency(messages.value.find(item => item.urgent))
+  window.setTimeout(() => showTransactionToast(messages.value.find(item => item.trade)), 350)
 })
-onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateViewportWidth)
+  transactionToastTimers.forEach(timer => window.clearTimeout(timer))
+  transactionToastTimers.clear()
+})
 </script>
 
 <template>
@@ -221,6 +254,16 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
       <section v-if="showHeaderNotice && systemNoticeEnabled" class="header-marquee" aria-label="系统通知" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><b>系统通知</b><span class="notice-scroll"><i>{{ headerNotice.text }}　{{ headerNotice.text }}</i></span><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><Close /></el-icon></button></section>
       <div class="variant-header-end"><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="showUnreadBadge && unreadMessageCount">{{ unreadMessageCount }}</em></button><button class="header-settings-action" aria-label="系统设置" @click="settingsVisible=true"><el-icon><Setting /></el-icon></button><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
     </header>
+    <aside class="transaction-toast-stack" aria-live="polite" aria-label="委托结果提示">
+      <transition-group name="transaction-toast">
+        <article v-for="message in transactionToasts" :key="message.id" class="transaction-toast-card">
+          <header><span class="transaction-toast-type"><el-icon><CircleCheck /></el-icon>交易消息</span><button type="button" :aria-label="`关闭${message.title}`" @click="dismissTransactionToast(message.id)"><el-icon><Close /></el-icon></button></header>
+          <strong>{{ message.title }}</strong><time>{{ message.time }}</time>
+          <p>{{ message.trade.name }}（{{ message.trade.code }}）</p>
+          <p class="transaction-toast-result">{{ message.trade.status }}<template v-if="message.trade.price !== null"> · {{ money(message.trade.price) }} CNY</template></p>
+        </article>
+      </transition-group>
+    </aside>
     <div ref="workspace" class="variants-workspace" :class="[`dock-${dock}`,{'ticket-collapsed':collapsed,'is-dragging':dragging}]">
       <section class="positions-pane workspace-panel">
         <header class="positions-tabs"><button :class="{active:tab==='positions'}" @click="tab='positions'">所有持仓<span>({{ allRows.length }})</span></button><button :class="{active:tab==='orders'}" @click="tab='orders'">所有委托<span>({{ orders.length }})</span></button><button :class="{active:tab==='trades'}" @click="tab='trades'">所有成交<span>(0)</span></button><el-switch v-model="showAll" active-text="展示全部账户" size="small" /><button v-if="collapsed" class="workspace-restore-ticket" @click="collapsed=false"><img class="restore-panel-icon" :src="assetUrl('panel-expand.svg')" alt=""><span class="restore-panel-label" style="color:#9ba3af!important;font-size:12px!important">展开下单面板</span></button></header>
