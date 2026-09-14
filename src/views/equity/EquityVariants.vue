@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ArrowDownBold, Bell, CaretBottom, ChatDotRound, Search, Document, Setting, InfoFilled, Download, View, Hide, Clock, CircleCheck, CircleClose, Close, EditPen, List, More } from '@element-plus/icons-vue'
 import ClientLineIcon from '../../ClientLineIcon.vue'
+import SettingsMenuIcon from '../../SettingsMenuIcon.vue'
 import { accounts } from './fixtures'
 import { marketInstruments, variantRows, variants, money, number } from './variantData'
 import { useTicketDock } from './useTicketDock'
@@ -23,6 +24,13 @@ const headerNoticeKey = 'faucon-header-notice-dismissed-v2'
 const showHeaderNotice = ref(true)
 const systemNoticeEnabled = ref(true)
 const showUnreadBadge = ref(true)
+const settingsVisible = ref(false)
+const activeSetting = ref('account')
+const language = ref('简体中文')
+const orderPrice = ref('最新价')
+const colorRule = ref('red-up')
+const theme = ref('dark')
+const autoLaunch = ref(false)
 const emergencyMessage = ref(null)
 const headerNotice = {
   id: 'system-maintenance-20260911',
@@ -37,8 +45,13 @@ const messages = ref([
   { id: 6, category: '消息', title: '撤单申请已受理', content: '招商银行（600036）撤单申请已提交，当前状态：待撤。', time: '09-08 13:46', unread: false },
 ])
 const messageCategories = ['全部', '通知', '消息', '待办']
+const settingMenu = [
+  { key: 'account', label: '账号信息' }, { key: 'language', label: '语言设置' },
+  { key: 'trading', label: '交易与行情设置' }, { key: 'appearance', label: '系统外观' },
+]
 const filteredMessages = computed(() => messageCategory.value === '全部' ? messages.value : messages.value.filter(item => item.category === messageCategory.value))
 const unreadMessageCount = computed(() => messages.value.filter(item => item.unread).length)
+const pricePreviewClass = computed(() => colorRule.value === 'green-up' ? 'reverse' : '')
 function categoryUnreadCount(category) { return messages.value.filter(item => item.unread && (category === '全部' || item.category === category)).length }
 function messageIcon(category) { return assetUrl({ '全部': 'message-all.svg', '通知': 'message-notice.svg', '消息': 'message-system.svg', '待办': 'message-todo.svg' }[category]) }
 function needsExpansion(message) { return message.content.length > 100 }
@@ -132,6 +145,11 @@ function dismissHeaderNotice() {
   showHeaderNotice.value = false
   localStorage.setItem(headerNoticeKey, '1')
 }
+function scrollToSetting(key) {
+  activeSetting.value = key
+  document.getElementById(`equity-${key}-setting`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+function saveSettings() { settingsVisible.value = false }
 function showEmergency(message) {
   if (message?.urgent) emergencyMessage.value = message
 }
@@ -196,7 +214,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         <el-dropdown v-if="overflowNav.length" trigger="click" popper-class="variant-nav-popper" @command="label => activeNav = label"><button class="more-nav" :class="{ active: overflowNav.some(item => item.label === activeNav) }">更多<el-icon><CaretBottom /></el-icon></button><template #dropdown><el-dropdown-menu><el-dropdown-item v-for="item in overflowNav" :key="item.label" :command="item.label"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span>{{ item.label }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
       </nav>
       <section v-if="showHeaderNotice && systemNoticeEnabled" class="header-marquee" aria-label="系统通知" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><b>系统通知</b><span class="notice-scroll"><i>{{ headerNotice.text }}　{{ headerNotice.text }}</i></span><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><Close /></el-icon></button></section>
-      <div class="variant-header-end"><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="showUnreadBadge && unreadMessageCount">{{ unreadMessageCount }}</em></button><el-popover trigger="click" placement="bottom-end" :width="220" popper-class="header-settings-popper"><template #reference><button class="header-settings-action" aria-label="界面设置"><el-icon><Setting /></el-icon></button></template><section class="header-settings" aria-label="界面设置"><header>界面设置</header><label><span><b>系统通知</b><small>在顶部显示维护等重要通知</small></span><el-switch v-model="systemNoticeEnabled" size="small" /></label><label><span><b>未读提醒</b><small>在消息图标上显示未读数量</small></span><el-switch v-model="showUnreadBadge" size="small" /></label></section></el-popover><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
+      <div class="variant-header-end"><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="showUnreadBadge && unreadMessageCount">{{ unreadMessageCount }}</em></button><button class="header-settings-action" aria-label="系统设置" @click="settingsVisible=true"><el-icon><Setting /></el-icon></button><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
     </header>
     <div ref="workspace" class="variants-workspace" :class="[`dock-${dock}`,{'ticket-collapsed':collapsed,'is-dragging':dragging}]">
       <section class="positions-pane workspace-panel">
@@ -271,5 +289,10 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
       </div>
     </el-dialog>
     <el-dialog v-model="emergencyMessage" width="420px" align-center class="emergency-message-dialog" title="紧急通知"><section v-if="emergencyMessage"><h3>{{ emergencyMessage.title }}</h3><p>{{ emergencyMessage.content }}</p></section><template #footer><el-button type="primary" @click="emergencyMessage=null">我知道了</el-button></template></el-dialog>
+    <el-dialog v-model="settingsVisible" class="equity-settings-dialog" width="700px" align-center :show-close="false" :close-on-click-modal="true" destroy-on-close>
+      <template #header><div class="settings-title"><h2>系统设置</h2><button @click="settingsVisible=false"><el-icon><Close /></el-icon></button></div></template>
+      <div class="settings-layout"><nav class="settings-nav"><button v-for="item in settingMenu" :key="item.key" :class="{ active: activeSetting === item.key }" @click="scrollToSetting(item.key)"><SettingsMenuIcon :name="item.key" />{{ item.label }}</button></nav><el-scrollbar class="settings-content"><section id="equity-account-setting" class="settings-section"><h3>账号信息</h3><div class="setting-row"><span>登录密码</span><el-button plain>修改密码</el-button></div><div class="setting-row"><span>开机启动</span><el-switch v-model="autoLaunch" /></div></section><section id="equity-language-setting" class="settings-section"><h3>语言设置</h3><div class="setting-row"><span>显示语言</span><el-radio-group v-model="language" class="settings-radio-group"><el-radio class="settings-radio" label="简体中文">简体中文</el-radio><el-radio class="settings-radio" label="繁體中文">繁體中文</el-radio><el-radio class="settings-radio" label="English">English</el-radio></el-radio-group></div></section><section id="equity-trading-setting" class="settings-section"><h3>交易与行情设置</h3><div class="setting-row"><span>委托价设置</span><el-radio-group v-model="orderPrice" class="settings-radio-group"><el-radio class="settings-radio" label="买一">买一</el-radio><el-radio class="settings-radio" label="卖一">卖一</el-radio><el-radio class="settings-radio" label="最新价">最新价</el-radio></el-radio-group></div><div class="setting-row"><span>涨跌幅颜色</span><el-radio-group v-model="colorRule" class="settings-radio-group"><el-radio class="settings-radio" label="red-up">红涨绿跌</el-radio><el-radio class="settings-radio" label="green-up">绿涨红跌</el-radio></el-radio-group></div><div class="price-preview" :class="pricePreviewClass"><span class="up">↑ 2.48%</span><span class="down">↓ 1.36%</span></div></section><section id="equity-appearance-setting" class="settings-section"><h3>系统外观</h3><div class="setting-row"><span>主题模式</span><el-radio-group v-model="theme" class="settings-radio-group"><el-radio class="settings-radio" label="dark">深色模式</el-radio><el-radio class="settings-radio" label="light">浅色模式</el-radio></el-radio-group></div><div class="theme-cards"><button :class="{ selected: theme === 'dark' }" @click="theme='dark'"><span class="mini-screen dark"><i /><b /><em /><em /><em /></span>深色模式</button><button :class="{ selected: theme === 'light' }" @click="theme='light'"><span class="mini-screen light"><i /><b /><em /><em /><em /></span>浅色模式</button></div></section></el-scrollbar></div>
+      <template #footer><div class="settings-footer"><el-button @click="settingsVisible=false">取 消</el-button><el-button type="primary" @click="saveSettings">保存设置</el-button></div></template>
+    </el-dialog>
   </main>
 </template>
