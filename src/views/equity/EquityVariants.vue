@@ -73,7 +73,7 @@ const workspace = ref(null), accountId = ref('TZS_T0'), showAll = ref(false), qu
 const assetsVisible = ref(true), assetsCollapsed = ref(false)
 const tab = ref('positions'), selectedCode = ref('000001'), table = ref(null), quote = ref(null)
 const orderStatusMachine = ['未报', '待报', '已报', '待撤', '待撤［部成］', '部撤', '撤单', '部成', '全成', '被拒绝', '已报待改', '待改［部成］', '改单待审核', '撤单待审核', '新单待审核']
-const orderStatusOptions = [{ label: '状态', value: 'ALL' }, ...orderStatusMachine.map(status => ({ label: status, value: status }))]
+const orderStatusOptions = orderStatusMachine.map(status => ({ label: status, value: status }))
 const demoOrders = ref(orderStatusMachine.map((status, index) => {
   const instrument = variantRows[index % variantRows.length]
   const quantity = (index + 1) * 100
@@ -90,7 +90,7 @@ const demoOrders = ref(orderStatusMachine.map((status, index) => {
     filledPrice: filledQuantity ? instrument.price : null, estimate: (price || instrument.price) * quantity,
   }
 }))
-const orderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: 'ALL' })
+const orderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: [] })
 const sortState = ref({ prop: null, direction: null })
 const orderSortState = ref({ prop: null, direction: null })
 const positionColumnDefaults = [
@@ -127,7 +127,7 @@ const sortedRows = computed(() => {
     return (left - right) * multiplier
   })
 })
-const orders = computed(() => demoOrders.value.filter(o => (showAll.value || o.account === accountId.value) && (!orderFilters.value.orderNo || o.orderNo.includes(orderFilters.value.orderNo.trim())) && (!orderFilters.value.symbol || `${o.code}${o.name}`.includes(orderFilters.value.symbol.trim())) && (orderFilters.value.side === 'ALL' || o.side === orderFilters.value.side) && (orderFilters.value.openClose === 'ALL' || o.openClose === orderFilters.value.openClose) && (orderFilters.value.status === 'ALL' || o.status === orderFilters.value.status)))
+const orders = computed(() => demoOrders.value.filter(o => (showAll.value || o.account === accountId.value) && (!orderFilters.value.orderNo || o.orderNo.includes(orderFilters.value.orderNo.trim())) && (!orderFilters.value.symbol || `${o.code}${o.name}`.includes(orderFilters.value.symbol.trim())) && (orderFilters.value.side === 'ALL' || o.side === orderFilters.value.side) && (orderFilters.value.openClose === 'ALL' || o.openClose === orderFilters.value.openClose) && (!orderFilters.value.status.length || orderFilters.value.status.includes(o.status))))
 const sortedOrders = computed(() => {
   const { prop, direction } = orderSortState.value
   if (!prop || !direction) return orders.value
@@ -329,7 +329,7 @@ onBeforeUnmount(() => {
             <el-input v-model="orderFilters.symbol" :prefix-icon="Search" placeholder="标的名称 / 代码" aria-label="搜索委托标的" clearable />
             <el-select v-model="orderFilters.side" aria-label="买卖方向筛选" popper-class="variant-popper"><el-option label="买卖方向" value="ALL"/><el-option label="买入" value="buy"/><el-option label="卖出" value="sell"/></el-select>
             <el-select v-model="orderFilters.openClose" aria-label="开平类型筛选" popper-class="variant-popper"><el-option label="开平类型" value="ALL"/><el-option label="开" value="开"/><el-option label="平" value="平"/></el-select>
-            <el-select v-model="orderFilters.status" aria-label="委托状态筛选" popper-class="variant-popper"><el-option v-for="option in orderStatusOptions" :key="option.value" :label="option.label" :value="option.value" /></el-select>
+            <el-select v-model="orderFilters.status" multiple collapse-tags :max-collapse-tags="1" placeholder="委托状态" aria-label="委托状态筛选" popper-class="variant-popper"><el-option v-for="option in orderStatusOptions" :key="option.value" :label="option.label" :value="option.value" /></el-select>
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
           <TradingTable class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
