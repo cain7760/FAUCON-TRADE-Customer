@@ -189,6 +189,14 @@ function tradeStatusLabel(status) {
   if (status.includes('已报')) return '已报'
   return status.replace(/^(买入|卖出)委托/, '').replace(/^委托已/, '')
 }
+function tradeStatusVisual(status) {
+  const label = tradeStatusLabel(status)
+  if (label === '全部成交') return { tone: 'success', icon: CircleCheck }
+  if (label === '部分成交') return { tone: 'partial', icon: More }
+  if (label === '撤单') return { tone: 'rejected', icon: CircleClose }
+  if (label === '已报') return { tone: 'reported', icon: CircleCheck }
+  return { tone: 'review', icon: EditPen }
+}
 function publishTransactionMessage({ name, code, status, quantity = null, quantityLabel = '成交数量', price = null, title = '委托状态更新' }) {
   const message = {
     id: `trade-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -284,7 +292,7 @@ onBeforeUnmount(() => {
       <transition-group name="transaction-toast">
         <article v-for="toast in transactionToasts" :key="toast.message.id" class="transaction-toast-card">
           <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">权益交易 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
-          <p class="transaction-toast-instrument"><span>{{ toast.message.trade.name }}</span><small>（{{ toast.message.trade.code }}）</small><em>{{ tradeStatusLabel(toast.message.trade.status) }}</em></p>
+          <p class="transaction-toast-instrument"><span>{{ toast.message.trade.name }}</span><small>（{{ toast.message.trade.code }}）</small><em :class="`is-${tradeStatusVisual(toast.message.trade.status).tone}`"><el-icon><component :is="tradeStatusVisual(toast.message.trade.status).icon" /></el-icon>{{ tradeStatusLabel(toast.message.trade.status) }}</em></p>
           <dl class="transaction-toast-metrics"><div><dt>成交数量</dt><dd>{{ toast.message.trade.quantity ? `${number(toast.message.trade.quantity)} 股` : '--' }}</dd></div><div><dt>成交均价</dt><dd>{{ toast.message.trade.price !== null ? `${money(toast.message.trade.price)} CNY` : '--' }}</dd></div></dl>
         </article>
       </transition-group>
