@@ -41,7 +41,7 @@ const headerNotice = computed(() => systemRunning.value ? null : {
 const messages = ref([
   { id: 1, category: '通知', title: '系统例行维护通知', content: '交易系统将于 9 月 14 日 02:00—04:00 进行例行维护。维护期间，委托查询、资金查询及部分行情服务可能出现短暂延迟，请提前安排交易并关注后续系统通知。若您有未完成的委托，请在维护窗口开始前确认其状态；维护结束后系统会自动恢复服务，无需重复提交。', time: '今天 10:20', unread: true },
   { id: 2, category: '待办', title: '请完成适当性评估更新', content: '您的专业投资者适当性资料将在 30 天后到期，请在到期前完成更新，以免影响相关交易权限的正常使用。', time: '今天 09:15', unread: true },
-  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true, trade: { name: '平安银行', code: '000001', status: '全部成交', quantity: 900, quantityLabel: '成交数量', price: 11.78 } },
+  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true, trade: { name: '平安银行', code: '000001', status: '全部成交', quantity: 900, quantityLabel: '成交数量', price: 11.78, occurredAt: '2026-09-13 14:38:26' } },
   { id: 4, category: '通知', title: '账户资金划转完成', content: '资金划转申请已处理完成，到账金额 100,000.00 CNY。', time: '昨天 11:06', unread: false },
   { id: 5, category: '待办', title: '风险测评即将到期', content: '您的风险承受能力测评将在 2026 年 10 月 8 日到期。', time: '09-09 16:30', unread: false },
   { id: 6, category: '消息', title: '撤单申请已受理', content: '招商银行（600036）撤单申请已提交，当前状态：待撤。', time: '09-08 13:46', unread: false },
@@ -113,7 +113,8 @@ const { dock, collapsed, dragging, resizing, floating, start, startResize } = us
 dock.value = variants.find(v => v.id === variant.value).dock
 const account = computed(() => accounts.find(a => a.id === accountId.value))
 const instruments = computed(() => variantRows.map(p => accountId.value === 'TZS_T0' ? p : { ...p, id: p.id.replace('T0','T1'), qty: p.qty*2, available: p.available*2, value: p.value*2, account:'TZS_T1' }))
-const selected = computed(() => instruments.value.find(p => p.code === selectedCode.value) || marketInstruments.find(p => p.code === selectedCode.value))
+const emptySelected = { code: '', market: '', name: '请选择下单标的', price: null, cost: null, change: 0, available: 0 }
+const selected = computed(() => instruments.value.find(p => p.code === selectedCode.value) || marketInstruments.find(p => p.code === selectedCode.value) || emptySelected)
 const allRows = computed(() => showAll.value ? [...variantRows, ...variantRows.map(p => ({...p,id:p.id.replace('T0','T1'),qty:p.qty*2,available:p.available*2,value:p.value*2,account:'TZS_T1'}))] : instruments.value)
 const filtered = computed(() => allRows.value.filter(p => (!query.value || `${p.code}${p.name}`.includes(query.value.trim())) && (market.value === 'ALL' || p.market === market.value) && (positionType.value === 'ALL' || p.direction === positionType.value)))
 const sortedRows = computed(() => {
@@ -176,13 +177,17 @@ function dismissTransactionToast(id) {
   transactionToastTimers.delete(id)
   transactionToasts.value = transactionToasts.value.filter(toast => toast.message.id !== id)
 }
+function timestampNow() {
+  const date = new Date(), pad = value => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
 function publishTransactionMessage({ name, code, status, quantity = null, quantityLabel = '成交数量', price = null, title = '委托状态更新' }) {
   const message = {
     id: `trade-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     category: '消息', title,
     content: `${name}（${code}）${status}${price === null ? '。' : `，成交均价 ${money(price)} CNY。`}`,
     time: '刚刚', unread: true,
-    trade: { name, code, status, quantity, quantityLabel, price },
+    trade: { name, code, status, quantity, quantityLabel, price, occurredAt: timestampNow() },
   }
   messages.value.unshift(message)
   showTransactionToast(message)
@@ -271,7 +276,7 @@ onBeforeUnmount(() => {
       <transition-group name="transaction-toast">
         <article v-for="toast in transactionToasts" :key="toast.message.id" class="transaction-toast-card">
           <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">权益交易 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
-          <strong>{{ toast.message.title }}</strong><time>{{ toast.message.time }}</time>
+          <strong>{{ toast.message.title }}</strong><time>{{ toast.message.trade.occurredAt }}</time>
           <p>{{ toast.message.trade.name }}（{{ toast.message.trade.code }}）</p>
           <p class="transaction-toast-result"><span>{{ toast.message.trade.status }}</span><span v-if="toast.message.trade.quantity">{{ toast.message.trade.quantityLabel }} {{ number(toast.message.trade.quantity) }} 股</span><span v-if="toast.message.trade.price !== null">成交均价 {{ money(toast.message.trade.price) }} CNY</span></p>
         </article>
@@ -336,7 +341,7 @@ onBeforeUnmount(() => {
         <OrderBook v-show="!collapsed" :symbol="selected" :compact="dock === 'bottom'" @drag="start" @quote="value=>{quote=value;collapsed=false}" />
         <section v-show="!collapsed" class="ticket-pane workspace-panel">
           <header class="module-heading drag-heading" @pointerdown="start"><span class="drag-title"><span class="drag-grip" aria-hidden="true"><i v-for="n in 8" :key="n" /></span><h2>交易委托</h2></span><button aria-label="收起交易区域" class="collapse-ticket" @pointerdown.stop @click="collapsed=true"><img :src="assetUrl('panel-collapse.svg')" alt=""></button></header>
-          <OrderTicket :instruments="marketInstruments" :accounts="accounts" :symbol="selected" :account="account" :quote="quote" :paused="!systemRunning" @account-select="id=>accountId=id" @select="code=>selectedCode=code" @order="acceptOrder" />
+          <OrderTicket :instruments="marketInstruments" :accounts="accounts" :symbol="selected" :account="account" :quote="quote" :paused="!systemRunning" @account-select="id=>accountId=id" @select="code=>{ selectedCode=code; if (!code) quote=null }" @order="acceptOrder" />
         </section>
         <section v-show="!collapsed" class="compact-assets ticket-assets" :class="{ 'is-collapsed': assetsCollapsed }" aria-label="账户资金"><div class="asset-summary-heading"><span>资产账户概要</span><button class="asset-visibility" type="button" :aria-label="assetsVisible ? '隐藏资金数值' : '查看资金数值'" @click="toggleAssetsVisible"><el-icon><View v-if="assetsVisible" /><Hide v-else /></el-icon></button><button class="asset-collapse" type="button" :aria-label="assetsCollapsed ? '展开资产账户概要' : '收起资产账户概要'" @click="assetsCollapsed=!assetsCollapsed"><el-icon><ArrowDownBold /></el-icon></button></div><div v-show="!assetsCollapsed" class="asset-summary-grid"><div class="asset-metric asset-available"><span>大账户可用</span><el-tooltip v-if="assetsVisible" placement="top" popper-class="asset-value-popper"><template #content><span class="asset-large-value"><template v-for="part in assetAmountParts(account.cash)" :key="`${part.value}${part.unit}`"><b>{{ part.value }}</b><i v-if="part.unit">{{ part.unit }}</i></template></span></template><b class="asset-number">{{ money(account.cash) }}</b></el-tooltip><b v-else class="asset-number">••••••••</b><small>CNY</small></div><div class="asset-metric"><span>大账户余额</span><el-tooltip v-if="assetsVisible" placement="top" popper-class="asset-value-popper"><template #content><span class="asset-large-value"><template v-for="part in assetAmountParts(accountBalance)" :key="`${part.value}${part.unit}`"><b>{{ part.value }}</b><i v-if="part.unit">{{ part.unit }}</i></template></span></template><b class="asset-number">{{ money(accountBalance) }}</b></el-tooltip><b v-else class="asset-number">••••••••</b><small>CNY</small></div></div></section>
         <button v-if="dock === 'floating'" type="button" class="floating-resize-handle" aria-label="调整下单面板高度" @pointerdown="startResize"><span></span></button>

@@ -27,7 +27,7 @@ const canBuy = computed(() => !props.paused && commonValid.value)
 const canSell = computed(() => !props.paused && commonValid.value)
 function reset() { quantity.value = undefined; amount.value = undefined; fraction.value = 0; confirming.value = false }
 function chooseSymbol(code) { if (code) { displaySymbolCode.value = code; emit('select', code) } }
-function clearInstrument() { displaySymbolCode.value = null; search.value = ''; price.value = null; fraction.value = 0; confirming.value = false; nextTick(() => { quantity.value = undefined; amount.value = undefined; quantityInputKey.value += 1 }) }
+function clearInstrument() { displaySymbolCode.value = null; emit('select', null); search.value = ''; price.value = null; fraction.value = 0; confirming.value = false; nextTick(() => { quantity.value = undefined; amount.value = undefined; quantityInputKey.value += 1 }) }
 function handleInstrumentVisible(visible) { if (visible) { search.value = ''; nextTick(() => { instrumentPopperWidth.value = Math.round(instrumentSelect.value?.$el?.getBoundingClientRect().width || 0) }) } }
 watch(() => props.symbol.code, code => { displaySymbolCode.value = code; recentCodes.value = [code, ...recentCodes.value.filter(item => item !== code)].slice(0, 4); price.value = props.symbol.price; reset() })
 watch(() => props.account.id, reset)
