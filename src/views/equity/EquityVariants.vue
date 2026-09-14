@@ -19,7 +19,7 @@ const viewportWidth = ref(window.innerWidth)
 const messageCenterVisible = ref(false)
 const messageCategory = ref('全部')
 const expandedMessageIds = ref([])
-const headerNoticeKey = 'faucon-header-notice-dismissed-v1'
+const headerNoticeKey = 'faucon-header-notice-dismissed-v2'
 const showHeaderNotice = ref(true)
 const systemNoticeEnabled = ref(true)
 const showUnreadBadge = ref(true)
@@ -136,7 +136,6 @@ function showEmergency(message) {
   if (message?.urgent) emergencyMessage.value = message
 }
 function toggleAssetsVisible() { assetsVisible.value = !assetsVisible.value; if (assetsCollapsed.value) assetsCollapsed.value = false }
-function selectRow(row) { accountId.value = row.account; selectedCode.value = row.code }
 function applyFilters() { table.value?.setScrollTop?.(0) }
 function clearFilters() { query.value = ''; market.value = 'ALL'; positionType.value = 'ALL'; sortState.value = { prop: null, direction: null }; table.value?.clearFilter(); applyFilters() }
 function exportPositions() {
@@ -196,7 +195,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         <button v-for="item in visibleNav" :key="item.label" :class="{ active: activeNav === item.label }" @click="activeNav = item.label"><span class="nav-menu-content"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span><span class="nav-menu-label">{{ item.label }}</span></span></button>
         <el-dropdown v-if="overflowNav.length" trigger="click" popper-class="variant-nav-popper" @command="label => activeNav = label"><button class="more-nav" :class="{ active: overflowNav.some(item => item.label === activeNav) }">更多<el-icon><CaretBottom /></el-icon></button><template #dropdown><el-dropdown-menu><el-dropdown-item v-for="item in overflowNav" :key="item.label" :command="item.label"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span>{{ item.label }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
       </nav>
-      <section v-if="showHeaderNotice && systemNoticeEnabled" class="header-marquee" aria-label="系统通知" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><b>系统通知</b><span>{{ headerNotice.text }}</span><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><Close /></el-icon></button></section>
+      <section v-if="showHeaderNotice && systemNoticeEnabled" class="header-marquee" aria-label="系统通知" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><b>系统通知</b><span class="notice-scroll"><i>{{ headerNotice.text }}　{{ headerNotice.text }}</i></span><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><Close /></el-icon></button></section>
       <div class="variant-header-end"><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="showUnreadBadge && unreadMessageCount">{{ unreadMessageCount }}</em></button><el-popover trigger="click" placement="bottom-end" :width="220" popper-class="header-settings-popper"><template #reference><button class="header-settings-action" aria-label="界面设置"><el-icon><Setting /></el-icon></button></template><section class="header-settings" aria-label="界面设置"><header>界面设置</header><label><span><b>系统通知</b><small>在顶部显示维护等重要通知</small></span><el-switch v-model="systemNoticeEnabled" size="small" /></label><label><span><b>未读提醒</b><small>在消息图标上显示未读数量</small></span><el-switch v-model="showUnreadBadge" size="small" /></label></section></el-popover><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
     </header>
     <div ref="workspace" class="variants-workspace" :class="[`dock-${dock}`,{'ticket-collapsed':collapsed,'is-dragging':dragging}]">
@@ -204,7 +203,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         <header class="positions-tabs"><button :class="{active:tab==='positions'}" @click="tab='positions'">所有持仓<span>({{ allRows.length }})</span></button><button :class="{active:tab==='orders'}" @click="tab='orders'">所有委托<span>({{ orders.length }})</span></button><button :class="{active:tab==='trades'}" @click="tab='trades'">所有成交<span>(0)</span></button><el-switch v-model="showAll" active-text="展示全部账户" size="small" /><button v-if="collapsed" class="workspace-restore-ticket" @click="collapsed=false"><img class="restore-panel-icon" :src="assetUrl('panel-expand.svg')" alt=""><span class="restore-panel-label" style="color:#9ba3af!important;font-size:12px!important">展开下单面板</span></button></header>
         <template v-if="tab==='positions'">
           <div class="position-filters"><el-input v-model="query" :prefix-icon="Search" placeholder="代码 / 名称" aria-label="搜索持仓" clearable /><el-select v-model="market" aria-label="持仓市场" popper-class="variant-popper"><el-option label="全部市场" value="ALL"/><el-option label="深市" value="SZ"/><el-option label="沪市" value="SH"/></el-select><el-select v-model="positionType" aria-label="多空类型筛选" popper-class="variant-popper"><el-option label="全部多空类型" value="ALL"/><el-option label="多头" value="多"/><el-option label="空头" value="空"/></el-select><el-button class="filter-query" @click="applyFilters">查询</el-button><el-button link @click="clearFilters">重置</el-button><el-tooltip content="导出当前持仓" placement="top"><button class="export-positions" aria-label="导出持仓" @click="exportPositions"><el-icon><Download /></el-icon></button></el-tooltip></div>
-          <TradingTable ref="table" class="original-fields" :data="sortedRows" height="100%" row-key="id" :row-class-name="({row})=>row.code===selectedCode && row.account===accountId?'chosen-position':''" @row-click="selectRow" empty-text="无匹配持仓，请调整或重置筛选">
+          <TradingTable ref="table" class="original-fields" :data="sortedRows" height="100%" row-key="id" empty-text="无匹配持仓，请调整或重置筛选">
             <el-table-column type="index" width="30" fixed align="center" />
             <template v-for="columnKey in visibleColumnKeys" :key="columnKey">
               <el-table-column v-if="columnKey === 'direction'" prop="direction" label="多空" width="48" align="center" header-align="center" class-name="direction-column" label-class-name="direction-column"><template #default="{row}"><span class="direction-chip" :class="row.direction === '多' ? 'long' : 'short'">{{ row.direction }}</span></template></el-table-column>
