@@ -276,9 +276,9 @@ onBeforeUnmount(() => {
       <transition-group name="transaction-toast">
         <article v-for="toast in transactionToasts" :key="toast.message.id" class="transaction-toast-card">
           <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">权益交易 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
-          <strong>{{ toast.message.title }}</strong><time>{{ toast.message.trade.occurredAt }}</time>
-          <p>{{ toast.message.trade.name }}（{{ toast.message.trade.code }}）</p>
-          <p class="transaction-toast-result"><span>{{ toast.message.trade.status }}</span><span v-if="toast.message.trade.quantity">{{ toast.message.trade.quantityLabel }} {{ number(toast.message.trade.quantity) }} 股</span><span v-if="toast.message.trade.price !== null">成交均价 {{ money(toast.message.trade.price) }} CNY</span></p>
+          <div class="transaction-toast-heading"><strong>{{ toast.message.title }}</strong><time>{{ toast.message.trade.occurredAt }}</time></div>
+          <p class="transaction-toast-status">状态 · {{ toast.message.trade.status }}</p>
+          <dl class="transaction-toast-metrics"><div><dt>标的</dt><dd>{{ toast.message.trade.name }}（{{ toast.message.trade.code }}）</dd></div><div><dt>{{ toast.message.trade.quantityLabel || '成交数量' }}</dt><dd>{{ toast.message.trade.quantity ? `${number(toast.message.trade.quantity)} 股` : '--' }}</dd></div><div><dt>成交均价</dt><dd>{{ toast.message.trade.price !== null ? `${money(toast.message.trade.price)} CNY` : '--' }}</dd></div></dl>
         </article>
       </transition-group>
     </aside>
