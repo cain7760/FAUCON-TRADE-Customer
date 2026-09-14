@@ -1,6 +1,5 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { Setting } from '@element-plus/icons-vue'
 
 const props = defineProps({
   modelValue: { type: Array, required: true },
@@ -12,6 +11,7 @@ const visible = ref(false)
 const draft = ref([])
 const draftOrder = ref([])
 const draggingKey = ref(null)
+const settingsIconUrl = `${import.meta.env.BASE_URL}original-icons/column-settings.svg`
 const optionLabels = computed(() => new Map(props.options))
 
 function orderedKeys(first) {
@@ -50,7 +50,7 @@ function dragEnd() { draggingKey.value = null }
 
 <template>
   <el-popover v-model:visible="visible" placement="bottom-end" :width="266" trigger="click" popper-class="column-config-popper" @show="beginEdit">
-    <template #reference><button class="column-config-trigger" aria-label="自定义列"><el-icon><Setting /></el-icon></button></template>
+    <template #reference><button class="column-config-trigger" aria-label="自定义列"><img :src="settingsIconUrl" alt=""></button></template>
     <section class="column-config-dialog" aria-label="自定义列设置">
       <header><b>自定义列设置</b><button type="button" @click="restoreDefaults">恢复默认</button></header>
       <div class="column-config-list">
