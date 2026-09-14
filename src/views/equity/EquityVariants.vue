@@ -270,7 +270,7 @@ onBeforeUnmount(() => {
     <aside class="transaction-toast-stack" aria-live="polite" aria-label="委托结果提示">
       <transition-group name="transaction-toast">
         <article v-for="toast in transactionToasts" :key="toast.message.id" class="transaction-toast-card">
-          <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">类型 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
+          <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">权益交易 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
           <strong>{{ toast.message.title }}</strong><time>{{ toast.message.time }}</time>
           <p>{{ toast.message.trade.name }}（{{ toast.message.trade.code }}）</p>
           <p class="transaction-toast-result">{{ toast.message.trade.status }}<template v-if="toast.message.trade.price !== null"> · {{ money(toast.message.trade.price) }} CNY</template></p>
