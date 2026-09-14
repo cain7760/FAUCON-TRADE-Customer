@@ -209,6 +209,7 @@
 .variants-app .quantity-input-row>.el-select.is-wan-unit{width:84px;flex-basis:84px}
 .variants-app .instrument-select .el-select__selected-item{color:#c2c6ce}
 .variants-app .instrument-select .el-select__placeholder.is-transparent{color:#747b87;font-weight:400}
+.variants-app .price-block .el-input__inner::placeholder,.variants-app .quantity-input-row .el-input__inner::placeholder{color:#747b87;font-size:14px;font-weight:400;opacity:1}
 .variants-app .order-totals{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
 .variants-app .order-totals .total-item{display:block;text-align:left}
 .variants-app .order-totals .total-item:nth-child(even){text-align:right}
