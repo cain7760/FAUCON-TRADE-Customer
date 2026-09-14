@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { ArrowDownBold, Bell, CaretBottom, ChatDotRound, Search, Document, InfoFilled, Download, View, Hide, Clock, CircleCheck, CircleClose, Close, EditPen, List, More } from '@element-plus/icons-vue'
+import { ArrowDownBold, Bell, CaretBottom, ChatDotRound, Search, Document, Setting, InfoFilled, Download, View, Hide, Clock, CircleCheck, CircleClose, Close, EditPen, List, More } from '@element-plus/icons-vue'
 import ClientLineIcon from '../../ClientLineIcon.vue'
 import { accounts } from './fixtures'
 import { marketInstruments, variantRows, variants, money, number } from './variantData'
@@ -21,6 +21,8 @@ const messageCategory = ref('全部')
 const expandedMessageIds = ref([])
 const headerNoticeKey = 'faucon-header-notice-dismissed-v1'
 const showHeaderNotice = ref(true)
+const systemNoticeEnabled = ref(true)
+const showUnreadBadge = ref(true)
 const emergencyMessage = ref(null)
 const headerNotice = {
   id: 'system-maintenance-20260911',
@@ -194,9 +196,9 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
         <button v-for="item in visibleNav" :key="item.label" :class="{ active: activeNav === item.label }" @click="activeNav = item.label"><span class="nav-menu-content"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span><span class="nav-menu-label">{{ item.label }}</span></span></button>
         <el-dropdown v-if="overflowNav.length" trigger="click" popper-class="variant-nav-popper" @command="label => activeNav = label"><button class="more-nav" :class="{ active: overflowNav.some(item => item.label === activeNav) }">更多<el-icon><CaretBottom /></el-icon></button><template #dropdown><el-dropdown-menu><el-dropdown-item v-for="item in overflowNav" :key="item.label" :command="item.label"><span class="source-composite variant-nav-icon" aria-hidden="true"><img v-for="part in item.icon" :key="part[0]" :src="assetUrl(part[0])" :style="{ left: `${part[1]}px`, top: `${part[2]}px`, width: `${part[3]}px`, height: `${part[4]}px` }" alt=""></span>{{ item.label }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
       </nav>
-      <div class="variant-header-end"><span class="demo-label">演示环境</span><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="unreadMessageCount">{{ unreadMessageCount }}</em></button><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
+      <section v-if="showHeaderNotice && systemNoticeEnabled" class="header-marquee" aria-label="系统通知" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><b>系统通知</b><span>{{ headerNotice.text }}</span><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><Close /></el-icon></button></section>
+      <div class="variant-header-end"><el-popover trigger="click" placement="bottom-end" :width="220" popper-class="header-settings-popper"><template #reference><button class="header-settings-action" aria-label="界面设置"><el-icon><Setting /></el-icon></button></template><section class="header-settings" aria-label="界面设置"><header>界面设置</header><label><span><b>系统通知</b><small>在顶部显示维护等重要通知</small></span><el-switch v-model="systemNoticeEnabled" size="small" /></label><label><span><b>未读提醒</b><small>在消息图标上显示未读数量</small></span><el-switch v-model="showUnreadBadge" size="small" /></label></section></el-popover><button class="notification-action" aria-label="打开消息中心" @click="openMessageCenter"><ClientLineIcon type="notification" /><em v-if="showUnreadBadge && unreadMessageCount">{{ unreadMessageCount }}</em></button><span class="small-avatar">K</span><span>Kevin Zhang</span></div>
     </header>
-    <section v-if="showHeaderNotice" class="system-notice-rail" aria-label="系统通知"><div class="system-notice" role="button" tabindex="0" @click="openMessageCenter" @keydown.enter="openMessageCenter"><el-icon><InfoFilled /></el-icon><strong>系统通知</strong><span class="notice-divider" aria-hidden="true"></span><span class="notice-scroll"><i>{{ headerNotice.text }}</i></span><button type="button" aria-label="关闭系统通知" @click.stop="dismissHeaderNotice"><el-icon><CircleClose /></el-icon></button></div></section>
     <div ref="workspace" class="variants-workspace" :class="[`dock-${dock}`,{'ticket-collapsed':collapsed,'is-dragging':dragging}]">
       <section class="positions-pane workspace-panel">
         <header class="positions-tabs"><button :class="{active:tab==='positions'}" @click="tab='positions'">所有持仓<span>({{ allRows.length }})</span></button><button :class="{active:tab==='orders'}" @click="tab='orders'">所有委托<span>({{ orders.length }})</span></button><button :class="{active:tab==='trades'}" @click="tab='trades'">所有成交<span>(0)</span></button><el-switch v-model="showAll" active-text="展示全部账户" size="small" /><button v-if="collapsed" class="workspace-restore-ticket" @click="collapsed=false"><img class="restore-panel-icon" :src="assetUrl('panel-expand.svg')" alt=""><span class="restore-panel-label" style="color:#9ba3af!important;font-size:12px!important">展开下单面板</span></button></header>
