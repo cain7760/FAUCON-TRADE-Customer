@@ -161,14 +161,20 @@ function showEmergency(message) {
 }
 function showTransactionToast(message) {
   if (!message?.trade || transactionToastTimers.has(message.id)) return
-  transactionToasts.value = [...transactionToasts.value, message]
-  transactionToastTimers.set(message.id, window.setTimeout(() => dismissTransactionToast(message.id), 8000))
+  transactionToasts.value = [...transactionToasts.value, { message, remaining: 8 }]
+  const countdownTimer = window.setInterval(() => {
+    transactionToasts.value = transactionToasts.value.map(toast => toast.message.id === message.id
+      ? { ...toast, remaining: Math.max(0, toast.remaining - 1) }
+      : toast)
+  }, 1000)
+  const dismissTimer = window.setTimeout(() => dismissTransactionToast(message.id), 8000)
+  transactionToastTimers.set(message.id, { countdownTimer, dismissTimer })
 }
 function dismissTransactionToast(id) {
-  const timer = transactionToastTimers.get(id)
-  if (timer) window.clearTimeout(timer)
+  const timers = transactionToastTimers.get(id)
+  if (timers) { window.clearInterval(timers.countdownTimer); window.clearTimeout(timers.dismissTimer) }
   transactionToastTimers.delete(id)
-  transactionToasts.value = transactionToasts.value.filter(message => message.id !== id)
+  transactionToasts.value = transactionToasts.value.filter(toast => toast.message.id !== id)
 }
 function publishTransactionMessage({ name, code, status, price = null, title = '委托状态更新' }) {
   const message = {
@@ -245,7 +251,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportWidth)
-  transactionToastTimers.forEach(timer => window.clearTimeout(timer))
+  transactionToastTimers.forEach(({ countdownTimer, dismissTimer }) => { window.clearInterval(countdownTimer); window.clearTimeout(dismissTimer) })
   transactionToastTimers.clear()
 })
 </script>
@@ -263,11 +269,11 @@ onBeforeUnmount(() => {
     </header>
     <aside class="transaction-toast-stack" aria-live="polite" aria-label="委托结果提示">
       <transition-group name="transaction-toast">
-        <article v-for="message in transactionToasts" :key="message.id" class="transaction-toast-card">
-          <header><span class="transaction-toast-type"><el-icon><CircleCheck /></el-icon>交易消息</span><button type="button" :aria-label="`关闭${message.title}`" @click="dismissTransactionToast(message.id)"><el-icon><Close /></el-icon></button></header>
-          <strong>{{ message.title }}</strong><time>{{ message.time }}</time>
-          <p>{{ message.trade.name }}（{{ message.trade.code }}）</p>
-          <p class="transaction-toast-result">{{ message.trade.status }}<template v-if="message.trade.price !== null"> · {{ money(message.trade.price) }} CNY</template></p>
+        <article v-for="toast in transactionToasts" :key="toast.message.id" class="transaction-toast-card">
+          <header><span class="transaction-toast-type"><el-icon><CircleCheck /></el-icon>类型 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
+          <strong>{{ toast.message.title }}</strong><time>{{ toast.message.time }}</time>
+          <p>{{ toast.message.trade.name }}（{{ toast.message.trade.code }}）</p>
+          <p class="transaction-toast-result">{{ toast.message.trade.status }}<template v-if="toast.message.trade.price !== null"> · {{ money(toast.message.trade.price) }} CNY</template></p>
         </article>
       </transition-group>
     </aside>
