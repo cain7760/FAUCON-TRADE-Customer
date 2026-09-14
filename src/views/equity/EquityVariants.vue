@@ -196,6 +196,11 @@ function assetAmountParts(value) {
   ]
 }
 function acceptOrder(order) { demoOrders.value.unshift(order); tab.value = 'orders' }
+function orderAction(row, action) {
+  if (action === '追单') { row.status = '已报'; row.runStatus = '运行中' }
+  if (action === '改单') { row.status = '已报待改'; row.runStatus = '运行中' }
+  if (action === '撤单') { row.status = '撤单'; row.runStatus = '已结束' }
+}
 function updateViewportWidth() { viewportWidth.value = window.innerWidth }
 onMounted(() => {
   showHeaderNotice.value = localStorage.getItem(headerNoticeKey) !== '1'
@@ -265,7 +270,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateViewportWidth))
               <el-table-column v-else-if="columnKey === 'filledQuantity'" prop="filledQuantity" width="92" align="right" header-align="right"><template #header><SortHeader label="成交数量" numeric :direction="orderSortState.prop === 'filledQuantity' ? orderSortState.direction : null" @sort="toggleOrderSort('filledQuantity')" /></template><template #default="{row}">{{ row.filledQuantity ? number(row.filledQuantity) : '--' }}</template></el-table-column>
               <el-table-column v-else-if="columnKey === 'filledPrice'" prop="filledPrice" width="92" align="right" header-align="right"><template #header><SortHeader label="成交均价" numeric :direction="orderSortState.prop === 'filledPrice' ? orderSortState.direction : null" @sort="toggleOrderSort('filledPrice')" /></template><template #default="{row}">{{ row.filledPrice === null ? '--' : money(row.filledPrice) }}</template></el-table-column>
             </template>
-            <el-table-column label="操作" width="70" fixed="right" align="center" class-name="operation-column" label-class-name="operation-column"><template #default="{row}"><el-button link :disabled="row.status==='已撤销'" @click="row.status='已撤销'">撤销</el-button></template></el-table-column>
+            <el-table-column label="操作" width="78" fixed="right" align="center" class-name="operation-column" label-class-name="operation-column"><template #default="{row}"><div class="order-row-actions"><button type="button" title="追单" aria-label="追单" @click="orderAction(row, '追单')">追</button><button type="button" title="改单" aria-label="改单" @click="orderAction(row, '改单')">改</button><button type="button" title="撤单" aria-label="撤单" @click="orderAction(row, '撤单')">撤</button></div></template></el-table-column>
             <el-table-column width="22" fixed="right" align="center" header-align="center" class-name="column-config-column" label-class-name="column-config-column"><template #header><ColumnConfigPopover v-model="orderVisibleColumnKeys" :options="orderColumnOptions" :defaults="orderColumnDefaults" /></template></el-table-column>
           </TradingTable>
         </template>
