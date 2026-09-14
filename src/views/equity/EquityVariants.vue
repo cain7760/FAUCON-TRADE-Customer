@@ -41,7 +41,7 @@ const headerNotice = computed(() => systemRunning.value ? null : {
 const messages = ref([
   { id: 1, category: '通知', title: '系统例行维护通知', content: '交易系统将于 9 月 14 日 02:00—04:00 进行例行维护。维护期间，委托查询、资金查询及部分行情服务可能出现短暂延迟，请提前安排交易并关注后续系统通知。若您有未完成的委托，请在维护窗口开始前确认其状态；维护结束后系统会自动恢复服务，无需重复提交。', time: '今天 10:20', unread: true },
   { id: 2, category: '待办', title: '请完成适当性评估更新', content: '您的专业投资者适当性资料将在 30 天后到期，请在到期前完成更新，以免影响相关交易权限的正常使用。', time: '今天 09:15', unread: true },
-  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true, trade: { name: '平安银行', code: '000001', status: '全部成交', price: 11.78 } },
+  { id: 3, category: '消息', title: '委托已全部成交', content: '平安银行（000001）买入委托已全部成交，成交均价 11.78 CNY。', time: '昨天 14:38', unread: true, trade: { name: '平安银行', code: '000001', status: '全部成交', quantity: 900, quantityLabel: '成交数量', price: 11.78 } },
   { id: 4, category: '通知', title: '账户资金划转完成', content: '资金划转申请已处理完成，到账金额 100,000.00 CNY。', time: '昨天 11:06', unread: false },
   { id: 5, category: '待办', title: '风险测评即将到期', content: '您的风险承受能力测评将在 2026 年 10 月 8 日到期。', time: '09-09 16:30', unread: false },
   { id: 6, category: '消息', title: '撤单申请已受理', content: '招商银行（600036）撤单申请已提交，当前状态：待撤。', time: '09-08 13:46', unread: false },
@@ -176,19 +176,19 @@ function dismissTransactionToast(id) {
   transactionToastTimers.delete(id)
   transactionToasts.value = transactionToasts.value.filter(toast => toast.message.id !== id)
 }
-function publishTransactionMessage({ name, code, status, price = null, title = '委托状态更新' }) {
+function publishTransactionMessage({ name, code, status, quantity = null, quantityLabel = '成交数量', price = null, title = '委托状态更新' }) {
   const message = {
     id: `trade-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     category: '消息', title,
     content: `${name}（${code}）${status}${price === null ? '。' : `，成交均价 ${money(price)} CNY。`}`,
     time: '刚刚', unread: true,
-    trade: { name, code, status, price },
+    trade: { name, code, status, quantity, quantityLabel, price },
   }
   messages.value.unshift(message)
   showTransactionToast(message)
 }
 function triggerDemoTransactionToast() {
-  publishTransactionMessage({ name: '平安银行', code: '000001', status: '买入委托全部成交', price: 11.78, title: '委托已全部成交' })
+  publishTransactionMessage({ name: '平安银行', code: '000001', status: '买入委托全部成交', quantity: 900, price: 11.78, title: '委托已全部成交' })
 }
 function toggleAssetsVisible() { assetsVisible.value = !assetsVisible.value; if (assetsCollapsed.value) assetsCollapsed.value = false }
 function applyFilters() { table.value?.setScrollTop?.(0) }
@@ -235,12 +235,12 @@ function assetAmountParts(value) {
 function acceptOrder(order) {
   demoOrders.value.unshift(order)
   tab.value = 'orders'
-  publishTransactionMessage({ name: order.name, code: order.code, status: '委托已提交', title: '委托提交成功' })
+  publishTransactionMessage({ name: order.name, code: order.code, status: '委托已提交', quantity: order.quantity, quantityLabel: '委托数量', title: '委托提交成功' })
 }
 function orderAction(row, action) {
-  if (action === '追单') { row.status = '已报'; row.runStatus = '运行中'; publishTransactionMessage({ name: row.name, code: row.code, status: '委托已报', title: '追单已提交' }) }
-  if (action === '改单') { row.status = '已报待改'; row.runStatus = '运行中'; publishTransactionMessage({ name: row.name, code: row.code, status: '改单申请已提交', title: '委托修改申请' }) }
-  if (action === '撤单') { row.status = '撤单'; row.runStatus = '已结束'; publishTransactionMessage({ name: row.name, code: row.code, status: '撤单成功', title: '委托撤单成功' }) }
+  if (action === '追单') { row.status = '已报'; row.runStatus = '运行中'; publishTransactionMessage({ name: row.name, code: row.code, status: '委托已报', quantity: row.quantity, quantityLabel: '委托数量', title: '追单已提交' }) }
+  if (action === '改单') { row.status = '已报待改'; row.runStatus = '运行中'; publishTransactionMessage({ name: row.name, code: row.code, status: '改单申请已提交', quantity: row.quantity, quantityLabel: '委托数量', title: '委托修改申请' }) }
+  if (action === '撤单') { row.status = '撤单'; row.runStatus = '已结束'; publishTransactionMessage({ name: row.name, code: row.code, status: '撤单成功', quantity: row.filledQuantity || null, title: '委托撤单成功' }) }
 }
 function updateViewportWidth() { viewportWidth.value = window.innerWidth }
 onMounted(() => {
@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
           <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">权益交易 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
           <strong>{{ toast.message.title }}</strong><time>{{ toast.message.time }}</time>
           <p>{{ toast.message.trade.name }}（{{ toast.message.trade.code }}）</p>
-          <p class="transaction-toast-result">{{ toast.message.trade.status }}<template v-if="toast.message.trade.price !== null"> · {{ money(toast.message.trade.price) }} CNY</template></p>
+          <p class="transaction-toast-result"><span>{{ toast.message.trade.status }}</span><span v-if="toast.message.trade.quantity">{{ toast.message.trade.quantityLabel }} {{ number(toast.message.trade.quantity) }} 股</span><span v-if="toast.message.trade.price !== null">成交均价 {{ money(toast.message.trade.price) }} CNY</span></p>
         </article>
       </transition-group>
     </aside>
