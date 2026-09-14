@@ -181,6 +181,14 @@ function timestampNow() {
   const date = new Date(), pad = value => String(value).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
+function tradeStatusLabel(status) {
+  if (status.includes('全部成交')) return '全部成交'
+  if (status.includes('部分成交') || status.includes('部成')) return '部分成交'
+  if (status.includes('撤单')) return '撤单'
+  if (status.includes('改单')) return '改单'
+  if (status.includes('已报')) return '已报'
+  return status.replace(/^(买入|卖出)委托/, '').replace(/^委托已/, '')
+}
 function publishTransactionMessage({ name, code, status, quantity = null, quantityLabel = '成交数量', price = null, title = '委托状态更新' }) {
   const message = {
     id: `trade-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -277,7 +285,7 @@ onBeforeUnmount(() => {
         <article v-for="toast in transactionToasts" :key="toast.message.id" class="transaction-toast-card">
           <header><span class="transaction-toast-type"><img :src="messageIcon('消息')" alt="">权益交易 · 委托回报</span><span class="transaction-toast-countdown">{{ toast.remaining }}s 后自动关闭</span><button type="button" :aria-label="`关闭${toast.message.title}`" @click="dismissTransactionToast(toast.message.id)"><el-icon><Close /></el-icon></button></header>
           <div class="transaction-toast-heading"><strong>{{ toast.message.title }}</strong></div>
-          <p class="transaction-toast-status">{{ toast.message.trade.name }}</p>
+          <p class="transaction-toast-instrument"><span>{{ toast.message.trade.name }}</span><small>（{{ toast.message.trade.code }}）</small><em>{{ tradeStatusLabel(toast.message.trade.status) }}</em></p>
           <dl class="transaction-toast-metrics"><div><dt>成交数量</dt><dd>{{ toast.message.trade.quantity ? `${number(toast.message.trade.quantity)} 股` : '--' }}</dd></div><div><dt>成交均价</dt><dd>{{ toast.message.trade.price !== null ? `${money(toast.message.trade.price)} CNY` : '--' }}</dd></div></dl>
         </article>
       </transition-group>
