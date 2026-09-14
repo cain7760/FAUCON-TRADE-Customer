@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { ArrowDown, ArrowUp, CircleClose, InfoFilled } from '@element-plus/icons-vue'
 import { money, number } from '../variantData'
-const props = defineProps({ instruments: Array, accounts: Array, symbol: Object, account: Object, quote: Object })
+const props = defineProps({ instruments: Array, accounts: Array, symbol: Object, account: Object, quote: Object, paused: Boolean })
 const emit = defineEmits(['select', 'account-select', 'order'])
 const orderType = ref('limit'), price = ref(props.symbol.price), quantity = ref(0), amount = ref(0), quantityMode = ref('quantity'), fraction = ref(0)
 const symbolMarket = ref('ALL'), search = ref(''), unit = ref('shares'), amountUnit = ref('yuan'), confirming = ref(false), insufficientFunds = ref(false), snapshot = ref(null)
@@ -14,7 +14,7 @@ const symbols = computed(() => props.instruments.filter(p => (symbolMarket.value
 const recentSymbols = computed(() => recentCodes.value.map(code => props.instruments.find(item => item.code === code)).filter(Boolean))
 const estimatedPrice = computed(() => orderType.value === 'limit' ? price.value : props.symbol.price)
 const displayedAmount = computed({
-  get: () => amountUnit.value === 'wan' ? (amount.value || 0) / 10000 : amount.value,
+  get: () => amount.value == null ? undefined : amountUnit.value === 'wan' ? amount.value / 10000 : amount.value,
   set: value => { amount.value = (Number(value) || 0) * (amountUnit.value === 'wan' ? 10000 : 1) },
 })
 const priceInvalid = computed(() => orderType.value === 'limit' && price.value === 0)
@@ -23,9 +23,9 @@ const lotInvalid = computed(() => quantityMode.value === 'quantity' && unit.valu
 const maxBuy = computed(() => estimatedPrice.value > 0 ? Math.floor(props.account.cash / estimatedPrice.value / 100) * 100 : 0)
 const maxSell = computed(() => Math.max(0, props.symbol.available))
 const commonValid = computed(() => !!displaySymbolCode.value && shares.value > 0 && shares.value % 100 === 0 && (orderType.value === 'market' || price.value > 0))
-const canBuy = computed(() => commonValid.value)
-const canSell = computed(() => commonValid.value)
-function reset() { quantity.value = 0; amount.value = 0; fraction.value = 0; confirming.value = false }
+const canBuy = computed(() => !props.paused && commonValid.value)
+const canSell = computed(() => !props.paused && commonValid.value)
+function reset() { quantity.value = undefined; amount.value = undefined; fraction.value = 0; confirming.value = false }
 function chooseSymbol(code) { if (code) { displaySymbolCode.value = code; emit('select', code) } }
 function clearInstrument() { displaySymbolCode.value = null; search.value = ''; price.value = null; fraction.value = 0; confirming.value = false; nextTick(() => { quantity.value = undefined; amount.value = undefined; quantityInputKey.value += 1 }) }
 function handleInstrumentVisible(visible) { if (visible) { search.value = ''; nextTick(() => { instrumentPopperWidth.value = Math.round(instrumentSelect.value?.$el?.getBoundingClientRect().width || 0) }) } }
@@ -37,17 +37,19 @@ watch(price, () => { fraction.value = 0; confirming.value = false })
 function size(value) { const q = Math.floor(maxBuy.value * value / 100 / 100) * 100; if (quantityMode.value === 'amount') amount.value = Number((q * estimatedPrice.value).toFixed(2)); else quantity.value = unit.value === 'wan' ? Math.floor(q / 10000) : q }
 function stepPrice(direction) { const current = Number(price.value) || 0; price.value = Number((Math.max(0, current + direction * .01)).toFixed(2)) }
 function preview(side) {
+  if (props.paused) return
   if (!(side === 'buy' ? canBuy.value : canSell.value)) return
   if (side === 'buy' && estimatedPrice.value * shares.value > props.account.cash) { insufficientFunds.value = true; return }
   const id = Date.now()
   snapshot.value = { id, orderNo: `WT${id}`, account: props.account.id, code: props.symbol.code, name: props.symbol.name, type: orderType.value, side, quantity: shares.value, price: orderType.value === 'limit' ? price.value : null, estimate: estimatedPrice.value * shares.value, status: '待报', runStatus: '运行中', openClose: '开', attribute: `${orderType.value === 'limit' ? '限价' : '市价'}·${quantityMode.value === 'quantity' ? '数量' : '金额'}`, orderValueNumber: quantityMode.value === 'quantity' ? shares.value : amount.value, orderValue: quantityMode.value === 'quantity' ? `${number(shares.value)} 股` : `${money(amount.value || 0)} CNY`, filledQuantity: 0, filledPrice: null }
   confirming.value = true
 }
-function submit() { emit('order', { ...snapshot.value }); reset() }
+function submit() { if (props.paused) { confirming.value = false; return }; emit('order', { ...snapshot.value }); reset() }
 </script>
 
 <template>
-  <div class="order-form">
+  <div class="order-form" :class="{ 'is-paused': paused }">
+    <p v-if="paused" class="order-paused-notice">系统中断中，暂不支持下单</p>
     <section class="order-account-block">
       <div class="field-caption"><span>下单账户</span></div>
       <el-select :model-value="account.id" @update:model-value="id => emit('account-select', id)" aria-label="下单账户" popper-class="variant-popper"><el-option v-for="item in accounts" :key="item.id" :label="`${item.id}·${item.name}`" :value="item.id" /></el-select>
