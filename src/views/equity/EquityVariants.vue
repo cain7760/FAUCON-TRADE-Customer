@@ -150,7 +150,7 @@ function dismissHeaderNotice() {
 }
 function toggleSystemStatus() {
   systemRunning.value = !systemRunning.value
-  if (!systemRunning.value) showHeaderNotice.value = true
+  if (!systemRunning.value) { showHeaderNotice.value = true; selectedCode.value = null; quote.value = null }
 }
 function scrollToSetting(key) {
   activeSetting.value = key
