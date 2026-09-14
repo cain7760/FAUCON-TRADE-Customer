@@ -12,4 +12,5 @@
   --ft-color-down-border: #5eae90;
   --ft-color-buy: #b55f6b;
   --ft-color-sell: #3d9275;
+  --ft-dialog-top: clamp(56px, 10vh, 104px);
 }

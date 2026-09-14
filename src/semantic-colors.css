@@ -1,5 +1,10 @@
 :root { --el-color-danger: var(--ft-color-up); }
 
+/* Every Element Plus dialog uses the same upper-center placement. */
+.el-overlay-dialog { display: flex; align-items: flex-start !important; justify-content: center; padding: var(--ft-dialog-top) 16px 16px; }
+.el-overlay-dialog > .el-dialog { margin-top: 0 !important; margin-bottom: 0 !important; }
+.settings-dialog.el-dialog { top: var(--ft-dialog-top); transform: translateX(-50%); }
+
 /* Shared market direction. */
 .up { color: var(--ft-color-up) !important; }
 .down { color: var(--ft-color-down) !important; }
