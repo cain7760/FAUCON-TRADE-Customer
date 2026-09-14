@@ -20,11 +20,11 @@ function createTick(symbol, time = Date.now()) {
 function resetTicks(symbol) {
   if (!symbol) return
   const now = Date.now()
-  ticks.value = Array.from({ length: 12 }, (_, index) => createTick(symbol, now - index * 900))
+  ticks.value = Array.from({ length: 17 }, (_, index) => createTick(symbol, now - index * 900))
 }
 function appendTick() {
   if (!props.symbol) return
-  ticks.value = [createTick(props.symbol), ...ticks.value].slice(0, 12)
+  ticks.value = [createTick(props.symbol), ...ticks.value].slice(0, 17)
 }
 watch(() => props.symbol?.code, () => resetTicks(props.symbol), { immediate: true })
 onMounted(() => { tickTimer = window.setInterval(appendTick, 900) })
