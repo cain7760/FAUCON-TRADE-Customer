@@ -91,6 +91,8 @@ const demoOrders = ref(orderStatusMachine.map((status, index) => {
   }
 }))
 const orderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: [] })
+const appliedPositionFilters = ref({ query: '', market: 'ALL', positionType: 'ALL' })
+const appliedOrderFilters = ref({ orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: [] })
 const sortState = ref({ prop: null, direction: null })
 const orderSortState = ref({ prop: null, direction: null })
 const positionColumnDefaults = [
@@ -116,7 +118,7 @@ const instruments = computed(() => variantRows.map(p => accountId.value === 'TZS
 const emptySelected = { code: '', market: '', name: '请选择下单标的', price: null, cost: null, change: 0, available: 0 }
 const selected = computed(() => instruments.value.find(p => p.code === selectedCode.value) || marketInstruments.find(p => p.code === selectedCode.value) || emptySelected)
 const allRows = computed(() => showAll.value ? [...variantRows, ...variantRows.map(p => ({...p,id:p.id.replace('T0','T1'),qty:p.qty*2,available:p.available*2,value:p.value*2,account:'TZS_T1'}))] : instruments.value)
-const filtered = computed(() => allRows.value.filter(p => (!query.value || `${p.code}${p.name}`.includes(query.value.trim())) && (market.value === 'ALL' || p.market === market.value) && (positionType.value === 'ALL' || p.direction === positionType.value)))
+const filtered = computed(() => allRows.value.filter(p => (!appliedPositionFilters.value.query || `${p.code}${p.name}`.includes(appliedPositionFilters.value.query.trim())) && (appliedPositionFilters.value.market === 'ALL' || p.market === appliedPositionFilters.value.market) && (appliedPositionFilters.value.positionType === 'ALL' || p.direction === appliedPositionFilters.value.positionType)))
 const sortedRows = computed(() => {
   const { prop, direction } = sortState.value
   if (!prop || !direction) return filtered.value
@@ -127,7 +129,7 @@ const sortedRows = computed(() => {
     return (left - right) * multiplier
   })
 })
-const orders = computed(() => demoOrders.value.filter(o => (showAll.value || o.account === accountId.value) && (!orderFilters.value.orderNo || o.orderNo.includes(orderFilters.value.orderNo.trim())) && (!orderFilters.value.symbol || `${o.code}${o.name}`.includes(orderFilters.value.symbol.trim())) && (orderFilters.value.side === 'ALL' || o.side === orderFilters.value.side) && (orderFilters.value.openClose === 'ALL' || o.openClose === orderFilters.value.openClose) && (!orderFilters.value.status.length || orderFilters.value.status.includes(o.status))))
+const orders = computed(() => demoOrders.value.filter(o => (showAll.value || o.account === accountId.value) && (!appliedOrderFilters.value.orderNo || o.orderNo.includes(appliedOrderFilters.value.orderNo.trim())) && (!appliedOrderFilters.value.symbol || `${o.code}${o.name}`.includes(appliedOrderFilters.value.symbol.trim())) && (appliedOrderFilters.value.side === 'ALL' || o.side === appliedOrderFilters.value.side) && (appliedOrderFilters.value.openClose === 'ALL' || o.openClose === appliedOrderFilters.value.openClose) && (!appliedOrderFilters.value.status.length || appliedOrderFilters.value.status.includes(o.status))))
 const sortedOrders = computed(() => {
   const { prop, direction } = orderSortState.value
   if (!prop || !direction) return orders.value
@@ -212,7 +214,9 @@ function triggerDemoTransactionToast() {
   publishTransactionMessage({ name: '平安银行', code: '000001', status: '买入委托全部成交', quantity: 900, price: 11.78, title: '委托已全部成交' })
 }
 function toggleAssetsVisible() { assetsVisible.value = !assetsVisible.value; if (assetsCollapsed.value) assetsCollapsed.value = false }
-function applyFilters() { table.value?.setScrollTop?.(0) }
+function applyFilters() { appliedPositionFilters.value = { query: query.value, market: market.value, positionType: positionType.value }; table.value?.setScrollTop?.(0) }
+function applyOrderFilters() { appliedOrderFilters.value = { ...orderFilters.value, status: [...orderFilters.value.status] }; orderSortState.value = { prop: null, direction: null } }
+function clearOrderFilters() { orderFilters.value = { orderNo: '', symbol: '', side: 'ALL', openClose: 'ALL', status: [] }; applyOrderFilters() }
 function clearFilters() { query.value = ''; market.value = 'ALL'; positionType.value = 'ALL'; sortState.value = { prop: null, direction: null }; table.value?.clearFilter(); applyFilters() }
 function exportPositions() {
   const header = ['多空', '标的代码', '标的名称', '持仓均价', '最新价', '可用数量', '市值(万)', '总盈亏', '账户', '市场']
@@ -229,6 +233,9 @@ function exportOrders() {
 function chooseDock(value) { dock.value = value; if(value === 'floating' && workspace.value) floating.value = {x:Math.max(0, workspace.value.clientWidth-350),y:12,width:340,height:Math.min(650,workspace.value.clientHeight-12)} }
 function toggleSort(prop) { const current = sortState.value; sortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
 function toggleOrderSort(prop) { const current = orderSortState.value; orderSortState.value = current.prop !== prop || current.direction === null ? { prop, direction: 'ascending' } : current.direction === 'ascending' ? { prop, direction: 'descending' } : { prop: null, direction: null } }
+function toggleOrderStatus(status) { const selected = orderFilters.value.status; orderFilters.value.status = selected.includes(status) ? selected.filter(value => value !== status) : [...selected, status] }
+function selectAllOrderStatuses() { orderFilters.value.status = [...orderStatusMachine] }
+function invertOrderStatuses() { const selected = new Set(orderFilters.value.status); orderFilters.value.status = orderStatusMachine.filter(status => !selected.has(status)) }
 function orderStatusVisual(status) {
   if (status === '未报') return { tone: 'draft', icon: Document }
   if (['待报', '待撤', '待撤［部成］'].includes(status)) return { tone: 'pending', icon: Clock }
@@ -329,7 +336,8 @@ onBeforeUnmount(() => {
             <el-input v-model="orderFilters.symbol" :prefix-icon="Search" placeholder="标的名称 / 代码" aria-label="搜索委托标的" clearable />
             <el-select v-model="orderFilters.side" aria-label="买卖方向筛选" popper-class="variant-popper"><el-option label="买卖方向" value="ALL"/><el-option label="买入" value="buy"/><el-option label="卖出" value="sell"/></el-select>
             <el-select v-model="orderFilters.openClose" aria-label="开平类型筛选" popper-class="variant-popper"><el-option label="开平类型" value="ALL"/><el-option label="开" value="开"/><el-option label="平" value="平"/></el-select>
-            <el-select v-model="orderFilters.status" multiple collapse-tags :max-collapse-tags="1" placeholder="委托状态" aria-label="委托状态筛选" popper-class="variant-popper"><el-option v-for="option in orderStatusOptions" :key="option.value" :label="option.label" :value="option.value" /></el-select>
+            <el-select v-model="orderFilters.status" multiple collapse-tags :max-collapse-tags="1" placeholder="委托状态" aria-label="委托状态筛选" popper-class="variant-popper order-status-popper"><template #header><div class="order-status-filter-actions"><button type="button" @click.stop="selectAllOrderStatuses">全选</button><i></i><button type="button" @click.stop="invertOrderStatuses">反选</button></div></template><el-option v-for="option in orderStatusOptions" :key="option.value" :label="option.label" :value="option.value"><el-checkbox :model-value="orderFilters.status.includes(option.value)" @click.stop @change="toggleOrderStatus(option.value)">{{ option.label }}</el-checkbox></el-option></el-select>
+            <el-button class="filter-query" @click="applyOrderFilters">查询</el-button><el-button link @click="clearOrderFilters">重置</el-button>
             <el-tooltip content="导出当前筛选结果" placement="top"><button class="export-orders" aria-label="导出委托记录" @click="exportOrders"><el-icon><Download /></el-icon></button></el-tooltip>
           </div>
           <TradingTable class="original-fields orders-table" :data="sortedOrders" height="100%" empty-text="暂无委托记录">
